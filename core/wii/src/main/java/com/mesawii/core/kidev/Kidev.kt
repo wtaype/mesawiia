@@ -211,8 +211,11 @@ fun WiPassword(
 private fun wiFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = WiCss.mco,
     unfocusedBorderColor = WiCss.brd.copy(alpha = 0.60f),
-    focusedContainerColor = WiCss.inp.copy(alpha = 0.80f),
-    unfocusedContainerColor = WiCss.inp.copy(alpha = 0.50f),
-    focusedTextColor = WiCss.tx1,
-    unfocusedTextColor = WiCss.tx1,
+    focusedContainerColor = WiCss.inp.copy(alpha = 0.90f),
+    unfocusedContainerColor = WiCss.inp.copy(alpha = 0.60f),
+    focusedTextColor = WiCss.tx,
+    unfocusedTextColor = WiCss.tx,
+    focusedLabelColor = WiCss.mco,
+    unfocusedLabelColor = WiCss.tx3,
+    cursorColor = WiCss.mco,
 )
