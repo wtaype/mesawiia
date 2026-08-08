@@ -24,6 +24,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,7 +46,6 @@ import java.io.File
 
 /**
  * 📜 HolaScreen — Super-Scroll de Pruebas v2.0.0
- * Organizado del 1.1 al 3.1 con controles de calificación (0 a 10)
  */
 @Composable
 fun HolaScreen(
@@ -71,12 +71,23 @@ fun HolaScreen(
 
     val isOnline by rememberNetworkStatus()
 
-    // Estado del Actualizador v2.0.0 (Actualizar.kt en com.mesawii.core.kidev)
-    var updateStatus  by remember { mutableStateOf("Sin verificar") }
-    var isChecking    by remember { mutableStateOf(false) }
-    var isDownloading by remember { mutableStateOf(false) }
-    var downloadProg  by remember { mutableFloatStateOf(0f) }
-    var versionInfo   by remember { mutableStateOf<WiVersionInfo?>(null) }
+    // Estado del Actualizador PRO (Lectura Dinámica del versionCode real)
+    val installedVersionCode = remember { Actualizar.getInstalledVersionCode(context) }
+    var updateStatus     by remember { mutableStateOf("Sin verificar") }
+    var isChecking       by remember { mutableStateOf(false) }
+    var isDownloading    by remember { mutableStateOf(false) }
+    var downloadProg     by remember { mutableFloatStateOf(0f) }
+    var versionInfo      by remember { mutableStateOf<WiVersionInfo?>(null) }
+    var showUpdateDialog by remember { mutableStateOf(false) }
+
+    // Auto-verificación silenciosa al iniciar la app
+    LaunchedEffect(Unit) {
+        val info = Actualizar.checkUpdate(context)
+        if (info != null) {
+            versionInfo = info
+            showUpdateDialog = true
+        }
+    }
 
     // Estados de Formulario de prueba
     var testField    by remember { mutableStateOf("") }
@@ -135,7 +146,7 @@ fun HolaScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text("${Wii.app} v2.0.0 🍽️", style = WiText.h2, color = WiCss.tx)
+                            Text("${Wii.app} v2.0.0 (Code: $installedVersionCode) 🍽️", style = WiText.h2, color = WiCss.tx)
                             Text("Super-Scroll de Pruebas Nativa", style = WiText.small, color = WiCss.tx3)
                         }
                         GoldPill("SHOWCASE v2.0")
@@ -325,14 +336,15 @@ fun HolaScreen(
                             isChecking = true
                             updateStatus = "Buscando en Cloudflare..."
                             scope.launch {
-                                val info = Actualizar.checkUpdate(currentVersionCode = 1)
+                                val info = Actualizar.checkUpdate(context)
                                 isChecking = false
                                 if (info != null) {
                                     versionInfo = info
+                                    showUpdateDialog = true
                                     updateStatus = "¡Nueva versión ${info.versionName} disponible!"
                                     messenger.Mensaje("¡Nueva versión ${info.versionName} encontrada!")
                                 } else {
-                                    updateStatus = "Estás en la última versión oficial (v1.0.0)"
+                                    updateStatus = "Estás en la última versión oficial (v2.0.0)"
                                     messenger.Mensaje("Estás en la versión más reciente ✓")
                                 }
                             }
@@ -341,39 +353,37 @@ fun HolaScreen(
 
                     Spacer(Modifier.height(8.dp))
                     Text(updateStatus, style = WiText.small, color = WiCss.mco, fontWeight = FontWeight.Bold)
-
-                    versionInfo?.let { info ->
-                        Spacer(Modifier.height(10.dp))
-                        GlassCard(modifier = Modifier.fillMaxWidth(), intensity = 0.85f) {
-                            Text("Versión ${info.versionName} Lista para Instalar", style = WiText.h4, color = WiCss.tx1)
-                            Spacer(Modifier.height(4.dp))
-                            Text(info.releaseNotes, style = WiText.body, color = WiCss.tx2)
-                            Spacer(Modifier.height(12.dp))
-
-                            if (isDownloading) {
-                                LinearProgressBar(progress = downloadProg)
-                            } else {
-                                WiButton(text = "⏬ Actualizar e Instalar v${info.versionName}", onClick = {
-                                    isDownloading = true
-                                    scope.launch {
-                                        val file = Actualizar.downloadApk(context, info.apkUrl) { prog ->
-                                            downloadProg = prog
-                                        }
-                                        isDownloading = false
-                                        if (file != null) {
-                                            messenger.Mensaje("Lanzando instalador nativo...")
-                                            Actualizar.installApk(context, file)
-                                        } else {
-                                            messenger.Notificacion("Error al descargar APK", WiMsgType.Error)
-                                        }
-                                    }
-                                })
-                            }
-                        }
-                    }
                 }
 
                 Spacer(Modifier.height(32.dp))
+            }
+
+            // Popup Glassmorphism de Actualización PRO
+            versionInfo?.let { info ->
+                WiUpdateDialog(
+                    show = showUpdateDialog,
+                    versionInfo = info,
+                    isDownloading = isDownloading,
+                    downloadProgress = downloadProg,
+                    onConfirmUpdate = {
+                        if (!isDownloading) {
+                            isDownloading = true
+                            scope.launch {
+                                val file = Actualizar.downloadApk(context, info.apkUrl) { prog ->
+                                    downloadProg = prog
+                                }
+                                isDownloading = false
+                                if (file != null) {
+                                    messenger.Mensaje("Lanzando instalador nativo...")
+                                    Actualizar.installApk(context, file)
+                                } else {
+                                    messenger.Notificacion("Error al descargar APK", WiMsgType.Error)
+                                }
+                            }
+                        }
+                    },
+                    onDismiss = { showUpdateDialog = false }
+                )
             }
 
             WiMessengerHost(messenger = messenger, modifier = Modifier.align(Alignment.TopCenter))
@@ -400,7 +410,7 @@ private fun TestCard(
     title: String,
     content: @Composable () -> Unit
 ) {
-    var rating by remember { mutableFloatStateOf(9.5f) }
+    var rating by remember { mutableFloatStateOf(9.8f) }
 
     GlassCard(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -444,28 +454,6 @@ private fun TestCard(
                     thumbColor = WiCss.mco,
                     activeTrackColor = WiCss.mco
                 )
-            )
-        }
-    }
-}
-
-@Composable
-private fun LinearProgressBar(progress: Float) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text("Descargando actualización: ${(progress * 100).toInt()}%", style = WiText.tiny, color = WiCss.mco)
-        Spacer(Modifier.height(4.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(WiCss.brd)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(progress.coerceIn(0f, 1f))
-                    .height(8.dp)
-                    .background(WiCss.mco)
             )
         }
     }
