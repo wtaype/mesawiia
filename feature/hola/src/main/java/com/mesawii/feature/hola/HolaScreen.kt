@@ -82,16 +82,6 @@ fun HolaScreen(
     var versionInfo      by remember { mutableStateOf<WiVersionInfo?>(null) }
     var showUpdateDialog by remember { mutableStateOf(false) }
 
-    // Auto-verificación silenciosa al iniciar la app
-    LaunchedEffect(Unit) {
-        val info = Actualizar.checkUpdate(context)
-        if (info != null) {
-            versionInfo = info
-            showUpdateDialog = true
-            updateStatus = "🚀 Nueva versión v${info.versionName} disponible"
-        }
-    }
-
     // Estados de Formulario de prueba
     var testField    by remember { mutableStateOf("") }
     var testPassword by remember { mutableStateOf("") }

@@ -12,12 +12,10 @@
         <item name="android:forceDarkAllowed">false</item>
     </style>
 
-    <!-- Tema principal de la app (Sincronizado dinámicamente con WiCss / WiTemaApp) -->
+    <!-- Tema principal de la app (Sincronizado dinámicamente 100% por WiCss / WiTemaApp) -->
     <style name="Theme.MesaWii" parent="android:style/Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@color/splash_bg</item>
-        <item name="android:colorBackground">@color/splash_bg</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackground">@android:color/transparent</item>
         <item name="android:statusBarColor">#00000000</item>
         <item name="android:navigationBarColor">#00000000</item>
         <item name="android:forceDarkAllowed">false</item>
