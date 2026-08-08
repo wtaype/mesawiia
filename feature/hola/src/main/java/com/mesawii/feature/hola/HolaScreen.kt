@@ -408,9 +408,9 @@ private fun SectionHeader(title: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(WiCss.mco.copy(alpha = 0.15f))
-            .padding(12.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Text(title, style = WiText.h3, color = WiCss.mco, fontWeight = FontWeight.Bold)
     }

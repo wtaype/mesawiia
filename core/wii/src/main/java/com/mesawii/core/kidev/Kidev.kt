@@ -1,4 +1,4 @@
-﻿package com.mesawii.core.kidev
+package com.mesawii.core.kidev
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -60,9 +61,13 @@ fun GlassCard(
             content()
         }
     }
+    val cardModifier = modifier
+        .softGlassShadow(shape = shape)
+        .clip(shape)
+
     if (onClick == null) {
         Card(
-            modifier = modifier.softGlassShadow(),
+            modifier = cardModifier,
             shape = shape,
             colors = WiCss.glassColors(intensity),
             border = WiCss.glassBorder(intensity),
@@ -71,7 +76,7 @@ fun GlassCard(
     } else {
         Card(
             onClick = onClick,
-            modifier = modifier.softGlassShadow(),
+            modifier = cardModifier,
             shape = shape,
             colors = WiCss.glassColors(intensity),
             border = WiCss.glassBorder(intensity),

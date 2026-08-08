@@ -60,9 +60,12 @@ object FzSmart {
 // ─────────────────────────────────────────────────────────────────────────
 // 🌫️ softGlassShadow — Sombra suave para tarjetas glass
 // ─────────────────────────────────────────────────────────────────────────
-fun Modifier.softGlassShadow(elevation: Dp = 6.dp): Modifier = this.shadow(
+fun Modifier.softGlassShadow(
+    elevation: Dp = 6.dp,
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(20.dp)
+): Modifier = this.shadow(
     elevation   = elevation,
-    shape       = RoundedCornerShape(22.dp),
+    shape       = shape,
     spotColor   = Color.Black.copy(alpha = 0.10f),
     ambientColor = Color.Black.copy(alpha = 0.05f),
 )
