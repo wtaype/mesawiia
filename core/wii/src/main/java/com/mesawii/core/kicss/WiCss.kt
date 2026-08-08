@@ -26,15 +26,21 @@ import androidx.core.view.WindowCompat
 import com.mesawii.core.wii.R
 
 // ─────────────────────────────────────────────────────────────────────────
-// 🔤 Familias tipográficas (fPoppins / ff_P)
+// 🔤 Familias tipográficas (fPoppins / fOutfit)
 // ─────────────────────────────────────────────────────────────────────────
 val fPoppins = FontFamily(
-    Font(R.font.poppins_regular,  FontWeight.Normal),
-    Font(R.font.poppins_medium,   FontWeight.Medium),
-    Font(R.font.poppins_semibold, FontWeight.SemiBold),
-    Font(R.font.poppins_bold,     FontWeight.Bold),
+    Font(R.font.poppins_medium,   FontWeight.Medium),   // 500
+    Font(R.font.poppins_semibold, FontWeight.SemiBold), // 600
+    Font(R.font.poppins_bold,     FontWeight.Bold),     // 700
 )
 val ff_P = fPoppins
+
+val fOutfit = FontFamily(
+    Font(R.font.outfit_medium,   FontWeight.Medium),   // 500
+    Font(R.font.outfit_semibold, FontWeight.SemiBold), // 600
+    Font(R.font.outfit_bold,     FontWeight.Bold),     // 700
+)
+val ff_O = fOutfit
 
 // ─────────────────────────────────────────────────────────────────────────
 // 🎨 Contexto Global de Tema (CompositionLocalProvider + Dynamic System Bar)

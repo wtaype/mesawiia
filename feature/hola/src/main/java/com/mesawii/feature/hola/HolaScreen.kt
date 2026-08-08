@@ -24,7 +24,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,7 +44,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 /**
- * 📜 HolaScreen — Super-Scroll de Pruebas v2.0.0
+ * 📜 HolaScreen — Catálogo Oficial y Suite de Pruebas de los 16 Componentes Kidev v3.0.0
  */
 @Composable
 fun HolaScreen(
@@ -56,7 +55,7 @@ fun HolaScreen(
     val scope   = rememberCoroutineScope()
     val scroll  = rememberScrollState()
 
-    // Sistema de Mensajes
+    // Sistema de Mensajes y Notificaciones
     val messenger = rememberWiMessenger()
 
     // Estado de Hardware
@@ -74,7 +73,7 @@ fun HolaScreen(
     // Estado del Actualizador PRO
     val installedVersionName = remember { Actualizar.getInstalledVersionName(context) }
     val installedVersionCode = remember { Actualizar.getInstalledVersionCode(context) }
-    
+
     var updateStatus     by remember { mutableStateOf("🟢 Aplicación al día (v$installedVersionName)") }
     var isChecking       by remember { mutableStateOf(false) }
     var isDownloading    by remember { mutableStateOf(false) }
@@ -85,8 +84,8 @@ fun HolaScreen(
     // Estados de Formulario de prueba
     var testField    by remember { mutableStateOf("") }
     var testPassword by remember { mutableStateOf("") }
-    var testOption   by remember { mutableStateOf("Opción 1") }
-    val sampleOptions = listOf("Opción 1", "Opción 2 - Premium", "Opción 3 - Pro", "Opción 4 - Ultra")
+    var testOption   by remember { mutableStateOf("Opción 1 - Pro") }
+    val sampleOptions = listOf("Opción 1 - Pro", "Opción 2 - Premium", "Opción 3 - Ultra", "Opción 4 - POS VIP")
 
     // Modales
     var showDialog by remember { mutableStateOf(false) }
@@ -98,7 +97,7 @@ fun HolaScreen(
             capturedPhoto = res.bitmap
             photoKb = res.originalSizeKb
             compKb  = res.compressedSizeKb
-            messenger.Mensaje("Foto capturada y comprimida!")
+            messenger.Mensaje("¡Foto capturada y comprimida!")
         }
     }
 
@@ -140,7 +139,7 @@ fun HolaScreen(
                     ) {
                         Column {
                             Text("${Wii.app} v$installedVersionName 🍽️", style = WiText.h2, color = WiCss.tx)
-                            Text("Super-Scroll de Pruebas Nativa", style = WiText.small, color = WiCss.tx3)
+                            Text("Catálogo Oficial Kidev (16 Componentes)", style = WiText.small, color = WiCss.tx3)
                         }
                         GoldPill("Code: $installedVersionCode")
                     }
@@ -161,12 +160,12 @@ fun HolaScreen(
                 }
 
                 // ─────────────────────────────────────────────────────────────
-                // 📜 PARTE 1: Catálogo Numerado Kicss & Kidev (1.1 a 1.5)
+                // 📜 PARTE 1: Catálogo Numerado Kidev & Kicss (1.1 a 1.10)
                 // ─────────────────────────────────────────────────────────────
-                SectionHeader("📜 PARTE 1: Catálogo Numerado Kicss & Kidev")
+                SectionHeader("📜 PARTE 1: Componentes UI & Tipografía POS")
 
                 // 1.1 Mensajes
-                TestCard(num = "1.1", title = "Sistema de Mensajes (Toasts & Notificaciones)") {
+                TestCard(num = "1.1", title = "Sistema de Mensajes (Toasts & Banner)") {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         WiButton(text = "Toast Éxito", onClick = {
                             messenger.Mensaje("Guardado correctamente!")
@@ -177,8 +176,8 @@ fun HolaScreen(
                     }
                 }
 
-                // 1.2 Temas & Status Bar
-                TestCard(num = "1.2", title = "Selector de 5 Temas + Status Bar Sync") {
+                // 1.2 Temas & Status Bar Sync
+                TestCard(num = "1.2", title = "Selector de 5 Temas + Status Bar (WiTemas)") {
                     Text("Tema Activo: ${currentTema.name}", style = WiText.small, color = WiCss.mco, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(6.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -243,13 +242,71 @@ fun HolaScreen(
                     )
                 }
 
-                // ─────────────────────────────────────────────────────────────
-                // 📱 PARTE 2: Hardware Nativo Android 2026 (2.1 a 2.3)
-                // ─────────────────────────────────────────────────────────────
-                SectionHeader("📱 PARTE 2: Hardware Nativo Android 2026")
+                // 1.6 Tarjeta de Ayuda WiTipCard
+                TestCard(num = "1.6", title = "Tarjeta de Sugerencias & Tips WiTipCard") {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(WiCss.mco.copy(alpha = 0.15f))
+                            .padding(12.dp)
+                    ) {
+                        Text("💡 Tip Kidev: El sistema de temas guarda automáticamente tu preferencia en WiStore.", style = WiText.small, color = WiCss.mco)
+                    }
+                }
 
-                // 2.1 Cámara Fotográfica + Compresor
-                TestCard(num = "2.1", title = "Cámara HD Nativa + Compresor (10MB ➔ KB)") {
+                // 1.7 Insignias & Badges
+                TestCard(num = "1.7", title = "Badges & Pills de Estado (GoldPill & WiBadge)") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        GoldPill("GOLD VIP")
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(WiCss.success)
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text("COMPLETADO", style = WiText.tiny, color = WiCss.white, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // 1.8 Indicador Giratorio Spinner
+                TestCard(num = "1.8", title = "Indicador de Carga Giratorio WiSpin") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        WiSpin(size = 28.dp)
+                        Text("Procesando en segundo plano...", style = WiText.small, color = WiCss.tx2)
+                    }
+                }
+
+                // 1.9 Módulo de Facturación POS con Fuente Outfit
+                TestCard(num = "1.9", title = "🧾 Módulo POS / Facturación (Fuente Outfit)") {
+                    GlassCard(modifier = Modifier.fillMaxWidth(), intensity = 0.3f) {
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("TOTAL A PAGAR:", style = WiText.posCode, color = WiCss.tx3)
+                                Text("FOLIO #8942", style = WiText.posCode, color = WiCss.mco)
+                            }
+                            Text("$1,850.50 MXN", style = WiText.posAmount, color = WiCss.tx)
+                            Text("Subtotal: $1,600.00 + IVA (16%): $250.50", style = WiText.posPrice, color = WiCss.tx2)
+                        }
+                    }
+                }
+
+                // 1.10 Botón Flotante
+                TestCard(num = "1.10", title = "Botones de Acción WiButton") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        WiButton(text = "Acción Principal", onClick = { messenger.Mensaje("Clic principal") })
+                        WiButton(text = "Cancelar", containerColor = WiCss.error, onClick = { messenger.Mensaje("Cancelado") })
+                    }
+                }
+
+                // ─────────────────────────────────────────────────────────────
+                // 📱 PARTE 2: Hardware Nativo Android 2026 (1.11 a 1.16)
+                // ─────────────────────────────────────────────────────────────
+                SectionHeader("📱 PARTE 2: Hardware Nativo & Actualizaciones OTA")
+
+                // 1.11 Cámara Fotográfica + Compresor
+                TestCard(num = "1.11", title = "Cámara HD Nativa + Compresor (10MB ➔ KB)") {
                     WiButton(text = "📷 Tomar Foto HD", onClick = {
                         cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                     })
@@ -274,8 +331,8 @@ fun HolaScreen(
                     }
                 }
 
-                // 2.2 Grabador de Voz
-                TestCard(num = "2.2", title = "Micrófono Nativo & Grabador de Notas de Voz AAC") {
+                // 1.12 Grabador de Voz
+                TestCard(num = "1.12", title = "Micrófono Nativo & Grabador de Voz AAC") {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (!isRecording) {
                             WiButton(text = "🎙️ Grabar Voz", onClick = {
@@ -285,7 +342,7 @@ fun HolaScreen(
                             WiButton(text = "⏹️ Detener Grabación", containerColor = WiCss.error, onClick = {
                                 audioRecorder.stopRecording()
                                 isRecording = false
-                                messenger.Mensaje("Grabación guardada!")
+                                messenger.Mensaje("¡Grabación guardada!")
                             })
                         }
 
@@ -303,8 +360,8 @@ fun HolaScreen(
                     }
                 }
 
-                // 2.3 Estado de Red
-                TestCard(num = "2.3", title = "Estado de Conexión a Internet en Tiempo Real") {
+                // 1.13 Estado de Red
+                TestCard(num = "1.13", title = "Estado de Conexión en Tiempo Real (Hook)") {
                     Text(
                         text = if (isOnline) "🌐 Conectado a Internet (Online)" else "⚠️ Sin conexión a Internet (Offline)",
                         style = WiText.small,
@@ -313,12 +370,8 @@ fun HolaScreen(
                     )
                 }
 
-                // ─────────────────────────────────────────────────────────────
-                // ☁️ PARTE 3: Actualizador Cloudflare R2 (3.1)
-                // ─────────────────────────────────────────────────────────────
-                SectionHeader("☁️ PARTE 3: Actualizador Cloudflare (mesawii.amorwii.com)")
-
-                TestCard(num = "3.1", title = "Actualizaciones Directas OTA via Cloudflare R2") {
+                // 1.14 Actualizaciones Directas OTA
+                TestCard(num = "1.14", title = "Actualizaciones Directas OTA via Cloudflare R2") {
                     Text("Manifiesto: https://mesawii.amorwii.com/version.json", style = WiText.tiny, color = WiCss.tx3)
                     Spacer(Modifier.height(8.dp))
 
@@ -352,7 +405,6 @@ fun HolaScreen(
 
                     Spacer(Modifier.height(8.dp))
                     
-                    // Card status PRO
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -365,6 +417,16 @@ fun HolaScreen(
                             Text("Versión instalada: v$installedVersionName (Code: $installedVersionCode)", style = WiText.tiny, color = WiCss.tx2)
                         }
                     }
+                }
+
+                // 1.15 Popup OTA Glass
+                TestCard(num = "1.15", title = "Popup OTA Glassmorphic WiUpdateDialog") {
+                    Text("Popup flotante de actualización preparado para descargas directas APK.", style = WiText.small, color = WiCss.tx2)
+                }
+
+                // 1.16 Rating Sliders Interactivas
+                TestCard(num = "1.16", title = "Sistema de Calificación 10/10 Interactivo") {
+                    Text("Todas las tarjetas del catálogo cuentan con su slider dinámico de calificación.", style = WiText.small, color = WiCss.mco, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(Modifier.height(32.dp))
