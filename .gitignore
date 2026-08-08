@@ -1,0 +1,66 @@
+# ============================================================
+# 🛡️ MesaWii Android Module Git Ignore
+# Protects Android Studio state, build cache, and API secrets
+# ============================================================
+
+# ─── 🔑 Secrets & Environment ──────────────────────────────
+.env
+.env.local
+.env.development
+.env.production
+.env.*
+!.env.example
+
+# ─── ⚡ Supabase & Cloudflare ────────────────────────────────
+.dev.vars
+.wrangler/
+supabase/.temp/
+
+# ─── 🚀 Google Services & Firebase ─────────────────────────
+google-services.json
+**/google-services.json
+GoogleService-Info.plist
+**/GoogleService-Info.plist
+service-account*.json
+firebase-debug.log
+
+# ─── 🔐 Signing & Keys ────────────────────────────────────
+local.properties
+keystore.properties
+signing.properties
+secring.gpg
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+
+# ─── 📦 Gradle & Build Caches ──────────────────────────────
+.gradle/
+.kotlin/
+.cxx/
+.externalNativeBuild/
+build/
+**/build/
+
+# ─── 📱 APKs & Profiling ──────────────────────────────────
+*.apk
+*.aab
+*.ap_
+*.hprof
+*.prof
+*.trace
+
+# ─── 💻 IDE State ─────────────────────────────────────────
+*.iml
+.idea/
+.navigation/
+.captures/
+captures/
+.DS_Store
+/*.png
+/window.xml
+
+# ─── 🤖 Tooling ───────────────────────────────────────────
+.agents/
+skills-lock.json
