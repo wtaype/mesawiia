@@ -13,7 +13,7 @@ object Wii {
     const val linkweb = "https://mesawii.web.app"  // sin slash final para conectar fácilmente
     const val linkme = "https://wtaype.github.io/"
     const val packageName = "com.mesawii.app"
-    const val versionName = "v1.0.0"
+    const val versionName = "v2.0.0"
     const val version = "v1"
     const val dtema = "paz"
     const val dcolor = "#CCFFCE"

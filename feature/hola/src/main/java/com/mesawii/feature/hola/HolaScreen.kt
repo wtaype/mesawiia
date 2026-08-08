@@ -1,5 +1,11 @@
 package com.mesawii.feature.hola
 
+import android.Manifest
+import android.graphics.Bitmap
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,93 +17,456 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mesawii.core.Wii
 import com.mesawii.core.kicss.*
+import com.mesawii.core.kidev.*
+import kotlinx.coroutines.launch
+import java.io.File
 
+/**
+ * 📜 HolaScreen — Super-Scroll de Pruebas v2.0.0
+ * Organizado del 1.1 al 3.1 con controles de calificación (0 a 10)
+ */
 @Composable
 fun HolaScreen(
     currentTema: WiTemaColors = LocalWiTemaColors.current,
     onTemaSelected: (WiTemaColors) -> Unit = {}
 ) {
-    val theme     = LocalWiTemaColors.current
-    val temasList = remember { MesaWiTemas }
+    val context = LocalContext.current
+    val scope   = rememberCoroutineScope()
+    val scroll  = rememberScrollState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(WiCss.bg),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+    // Sistema de Mensajes
+    val messenger = rememberWiMessenger()
+
+    // Estado de Hardware
+    var capturedPhoto by remember { mutableStateOf<Bitmap?>(null) }
+    var photoKb       by remember { mutableStateOf(0L) }
+    var compKb        by remember { mutableStateOf(0L) }
+
+    val audioRecorder = remember { WiAudioRecorder(context) }
+    var isRecording   by remember { mutableStateOf(false) }
+    var isPlaying     by remember { mutableStateOf(false) }
+    var audioFile     by remember { mutableStateOf<File?>(null) }
+
+    val isOnline by rememberNetworkStatus()
+
+    // Estado del Actualizador v2.0.0 (Actualizar.kt en com.mesawii.core.kidev)
+    var updateStatus  by remember { mutableStateOf("Sin verificar") }
+    var isChecking    by remember { mutableStateOf(false) }
+    var isDownloading by remember { mutableStateOf(false) }
+    var downloadProg  by remember { mutableFloatStateOf(0f) }
+    var versionInfo   by remember { mutableStateOf<WiVersionInfo?>(null) }
+
+    // Estados de Formulario de prueba
+    var testField    by remember { mutableStateOf("") }
+    var testPassword by remember { mutableStateOf("") }
+    var testOption   by remember { mutableStateOf("Opción 1") }
+    val sampleOptions = listOf("Opción 1", "Opción 2 - Premium", "Opción 3 - Pro", "Opción 4 - Ultra")
+
+    // Modales
+    var showDialog by remember { mutableStateOf(false) }
+
+    // Launchers de Cámara y Micrófono
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
+        if (bitmap != null) {
+            val res = WiComprimir.comprimir(bitmap, maxDimension = 800, calidad = 80)
+            capturedPhoto = res.bitmap
+            photoKb = res.originalSizeKb
+            compKb  = res.compressedSizeKb
+            messenger.Mensaje("Foto capturada y comprimida!")
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) cameraLauncher.launch()
+        else messenger.Notificacion("Permiso de cámara denegado", WiMsgType.Error)
+    }
+
+    val audioPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            audioFile = audioRecorder.startRecording()
+            isRecording = true
+            messenger.Mensaje("Grabando nota de voz...")
+        } else {
+            messenger.Notificacion("Permiso de micrófono denegado", WiMsgType.Error)
+        }
+    }
+
+    WiMessengerProvider(messenger = messenger) {
+        Box(
             modifier = Modifier
-                .fillMaxWidth(0.88f)
-                .clip(RoundedCornerShape(24.dp))
-                .background(WiCss.wb)
-                .padding(28.dp)
+                .fillMaxSize()
+                .background(WiCss.bg)
         ) {
-            // Título principal
-            Text(
-                text = "${Wii.app} 🍽️",
-                style = WiText.h2,
-                color = WiCss.tx
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            // Descripción
-            Text(
-                text = Wii.descri,
-                style = WiText.body,
-                color = WiCss.tx3
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            // Tema activo
-            Text(
-                text = "Tema: ${theme.name} 🌿",
-                style = WiText.label,
-                color = WiCss.mco,
-                fontFamily = fPoppins,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            // Selector de temas
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scroll)
+                    .padding(horizontal = 16.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                temasList.forEach { tema ->
-                    val isSelected = tema.name == theme.name
+                // Header MesaWii v2.0.0
+                GlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("${Wii.app} v2.0.0 🍽️", style = WiText.h2, color = WiCss.tx)
+                            Text("Super-Scroll de Pruebas Nativa", style = WiText.small, color = WiCss.tx3)
+                        }
+                        GoldPill("SHOWCASE v2.0")
+                    }
+                }
+
+                // Banner de estado de red si se desconecta
+                if (!isOnline) {
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (isSelected) tema.mco else tema.bg)
-                            .clickable { onTemaSelected(tema) }
-                            .padding(horizontal = 14.dp, vertical = 10.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(WiCss.error)
+                            .padding(12.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = tema.name,
-                            style = WiText.small,
-                            color = if (isSelected) tema.txa else tema.tx,
-                            fontWeight = FontWeight.Medium
+                        Text("⚠️ Modo Offline: Sin conexión a Internet", style = WiText.body, color = WiCss.white, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                // ─────────────────────────────────────────────────────────────
+                // 📜 PARTE 1: Catálogo Numerado Kicss & Kidev (1.1 a 1.5)
+                // ─────────────────────────────────────────────────────────────
+                SectionHeader("📜 PARTE 1: Catálogo Numerado Kicss & Kidev")
+
+                // 1.1 Mensajes
+                TestCard(num = "1.1", title = "Sistema de Mensajes (Toasts & Notificaciones)") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        WiButton(text = "Toast Éxito", onClick = {
+                            messenger.Mensaje("Guardado correctamente!")
+                        })
+                        WiButton(text = "Banner Error", containerColor = WiCss.error, onClick = {
+                            messenger.Notificacion("Ocurrió un error inesperado", WiMsgType.Error)
+                        })
+                    }
+                }
+
+                // 1.2 Temas & Status Bar
+                TestCard(num = "1.2", title = "Selector de 5 Temas + Status Bar Sync") {
+                    Text("Tema Activo: ${currentTema.name}", style = WiText.small, color = WiCss.mco, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        MesaWiTemas.forEach { tema ->
+                            val isSel = tema.name == currentTema.name
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(if (isSel) tema.mco else tema.bg)
+                                    .clickable {
+                                        onTemaSelected(tema)
+                                    }
+                                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                            ) {
+                                Text(tema.name, style = WiText.tiny, color = if (isSel) tema.txa else tema.tx, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+
+                // 1.3 Formulario Fields
+                TestCard(num = "1.3", title = "Campos WiField y WiPassword") {
+                    WiField(
+                        value = testField,
+                        onValueChange = { testField = it },
+                        label = "Nombre de usuario",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    WiPassword(
+                        value = testPassword,
+                        onValueChange = { testPassword = it },
+                        label = "Contraseña segura",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                // 1.4 Modales
+                TestCard(num = "1.4", title = "Diálogos Modales WiDialog") {
+                    WiButton(text = "Abrir WiDialog Modal", onClick = { showDialog = true })
+                    if (showDialog) {
+                        WiDialog(
+                            show = showDialog,
+                            title = "Confirmar Acción",
+                            text = "¿Deseas procesar esta prueba en el sistema?",
+                            onConfirm = {
+                                showDialog = false
+                                messenger.Mensaje("Acción confirmada ✓")
+                            },
+                            onDismiss = { showDialog = false }
                         )
                     }
                 }
+
+                // 1.5 Picker Desplegable WiSelect
+                TestCard(num = "1.5", title = "Picker Desplegable Glass WiSelect") {
+                    WiSelect(
+                        selectedOption = testOption,
+                        options = sampleOptions,
+                        onOptionSelected = { testOption = it },
+                        label = "Seleccionar Plan de Usuario"
+                    )
+                }
+
+                // ─────────────────────────────────────────────────────────────
+                // 📱 PARTE 2: Hardware Nativo Android 2026 (2.1 a 2.3)
+                // ─────────────────────────────────────────────────────────────
+                SectionHeader("📱 PARTE 2: Hardware Nativo Android 2026")
+
+                // 2.1 Cámara Fotográfica + Compresor
+                TestCard(num = "2.1", title = "Cámara HD Nativa + Compresor (10MB ➔ KB)") {
+                    WiButton(text = "📷 Tomar Foto HD", onClick = {
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    })
+
+                    capturedPhoto?.let { bmp ->
+                        Spacer(Modifier.height(10.dp))
+                        Image(
+                            bitmap = bmp.asImageBitmap(),
+                            contentDescription = "Foto",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(160.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            "Original: ${photoKb}KB ➔ Comprimido: ${compKb}KB (-${100 - (compKb * 100 / (photoKb.coerceAtLeast(1)))}%)",
+                            style = WiText.small,
+                            color = WiCss.success,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                // 2.2 Grabador de Voz
+                TestCard(num = "2.2", title = "Micrófono Nativo & Grabador de Notas de Voz AAC") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (!isRecording) {
+                            WiButton(text = "🎙️ Grabar Voz", onClick = {
+                                audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            })
+                        } else {
+                            WiButton(text = "⏹️ Detener Grabación", containerColor = WiCss.error, onClick = {
+                                audioRecorder.stopRecording()
+                                isRecording = false
+                                messenger.Mensaje("Grabación guardada!")
+                            })
+                        }
+
+                        audioFile?.let {
+                            WiButton(text = if (isPlaying) "🔊 Reproduciendo..." else "▶️ Escuchar", onClick = {
+                                if (!isPlaying) {
+                                    isPlaying = true
+                                    audioRecorder.playAudio { isPlaying = false }
+                                } else {
+                                    audioRecorder.stopAudio()
+                                    isPlaying = false
+                                }
+                            })
+                        }
+                    }
+                }
+
+                // 2.3 Estado de Red
+                TestCard(num = "2.3", title = "Estado de Conexión a Internet en Tiempo Real") {
+                    Text(
+                        text = if (isOnline) "🌐 Conectado a Internet (Online)" else "⚠️ Sin conexión a Internet (Offline)",
+                        style = WiText.small,
+                        color = if (isOnline) WiCss.success else WiCss.error,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                // ─────────────────────────────────────────────────────────────
+                // ☁️ PARTE 3: Actualizador Cloudflare R2 (3.1)
+                // ─────────────────────────────────────────────────────────────
+                SectionHeader("☁️ PARTE 3: Actualizador Cloudflare (mesawii.amorwii.com)")
+
+                TestCard(num = "3.1", title = "Actualizaciones Directas OTA via Cloudflare R2") {
+                    Text("Manifiesto: https://mesawii.amorwii.com/version.json", style = WiText.tiny, color = WiCss.tx3)
+                    Spacer(Modifier.height(8.dp))
+
+                    WiButton(
+                        text = if (isChecking) "Consultando R2..." else "🔄 Buscar Actualizaciones",
+                        loading = isChecking,
+                        onClick = {
+                            isChecking = true
+                            updateStatus = "Buscando en Cloudflare..."
+                            scope.launch {
+                                val info = Actualizar.checkUpdate(currentVersionCode = 1)
+                                isChecking = false
+                                if (info != null) {
+                                    versionInfo = info
+                                    updateStatus = "¡Nueva versión ${info.versionName} disponible!"
+                                    messenger.Mensaje("¡Nueva versión ${info.versionName} encontrada!")
+                                } else {
+                                    updateStatus = "Estás en la última versión oficial (v1.0.0)"
+                                    messenger.Mensaje("Estás en la versión más reciente ✓")
+                                }
+                            }
+                        }
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+                    Text(updateStatus, style = WiText.small, color = WiCss.mco, fontWeight = FontWeight.Bold)
+
+                    versionInfo?.let { info ->
+                        Spacer(Modifier.height(10.dp))
+                        GlassCard(modifier = Modifier.fillMaxWidth(), intensity = 0.85f) {
+                            Text("Versión ${info.versionName} Lista para Instalar", style = WiText.h4, color = WiCss.tx1)
+                            Spacer(Modifier.height(4.dp))
+                            Text(info.releaseNotes, style = WiText.body, color = WiCss.tx2)
+                            Spacer(Modifier.height(12.dp))
+
+                            if (isDownloading) {
+                                LinearProgressBar(progress = downloadProg)
+                            } else {
+                                WiButton(text = "⏬ Actualizar e Instalar v${info.versionName}", onClick = {
+                                    isDownloading = true
+                                    scope.launch {
+                                        val file = Actualizar.downloadApk(context, info.apkUrl) { prog ->
+                                            downloadProg = prog
+                                        }
+                                        isDownloading = false
+                                        if (file != null) {
+                                            messenger.Mensaje("Lanzando instalador nativo...")
+                                            Actualizar.installApk(context, file)
+                                        } else {
+                                            messenger.Notificacion("Error al descargar APK", WiMsgType.Error)
+                                        }
+                                    }
+                                })
+                            }
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(32.dp))
             }
+
+            WiMessengerHost(messenger = messenger, modifier = Modifier.align(Alignment.TopCenter))
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(title: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(WiCss.mco.copy(alpha = 0.15f))
+            .padding(12.dp)
+    ) {
+        Text(title, style = WiText.h3, color = WiCss.mco, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun TestCard(
+    num: String,
+    title: String,
+    content: @Composable () -> Unit
+) {
+    var rating by remember { mutableFloatStateOf(9.5f) }
+
+    GlassCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("$num. $title", style = WiText.h4, color = WiCss.tx, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            
+            val badgeColor = when {
+                rating < 5f  -> WiCss.error
+                rating < 8f  -> WiCss.warning
+                else         -> WiCss.success
+            }
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(badgeColor)
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(String.format("%.1f/10", rating), style = WiText.tiny, color = WiCss.white, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        Spacer(Modifier.height(10.dp))
+        content()
+        Spacer(Modifier.height(12.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("Calificación:", style = WiText.tiny, color = WiCss.tx3)
+            Slider(
+                value = rating,
+                onValueChange = { rating = it },
+                valueRange = 0f..10f,
+                steps = 19,
+                modifier = Modifier.weight(1f),
+                colors = SliderDefaults.colors(
+                    thumbColor = WiCss.mco,
+                    activeTrackColor = WiCss.mco
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun LinearProgressBar(progress: Float) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text("Descargando actualización: ${(progress * 100).toInt()}%", style = WiText.tiny, color = WiCss.mco)
+        Spacer(Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(WiCss.brd)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(progress.coerceIn(0f, 1f))
+                    .height(8.dp)
+                    .background(WiCss.mco)
+            )
         }
     }
 }

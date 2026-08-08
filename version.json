@@ -1,7 +1,7 @@
 {
-  "versionCode": 1,
-  "versionName": "1.0.0",
-  "apkUrl": "https://mesawii.amorwii.com/mesawii-v1.0.0.apk",
-  "releaseNotes": "🎉 Primera versión oficial de MesaWii con Kidev, Kicss 5 temas completos y barra de estado dinámica.",
+  "versionCode": 2,
+  "versionName": "2.0.0",
+  "apkUrl": "https://mesawii.amorwii.com/mesawii-v2.0.0.apk",
+  "releaseNotes": "🚀 Gran actualización v2.0.0: Super-Scroll de Pruebas, Cámara HD, Grabador de Voz M4A, Respuesta Háptica y WiAutoUpdater desde Cloudflare R2.",
   "isMandatory": false
 }

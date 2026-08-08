@@ -14,6 +14,12 @@
 !.env.example
 !.env.template
 
+# ─── 📸 Local Screenshots & Captures ─────────────────────────
+recursos-mesawii/capturas/
+**/capturas/
+*.png
+/window.xml
+
 # ─── ⚡ Supabase ───────────────────────────────────────────
 supabase/.temp/
 supabase/.env
@@ -72,8 +78,6 @@ captures/
 .DS_Store
 Thumbs.db
 desktop.ini
-/*.png
-/window.xml
 .vscode/
 
 # ─── 🤖 Tooling & Agents ───────────────────────────────────
