@@ -1,30 +1,41 @@
 # ============================================================
-# 🛡️ MesaWii Android Module Git Ignore
-# Protects Android Studio state, build cache, and API secrets
+# 🛡️ MesaWii Android Git Ignore Policy
+# Protects against leaking API keys, secrets, and heavy binaries
 # ============================================================
 
-# ─── 🔑 Secrets & Environment ──────────────────────────────
+# ─── 🔑 Secrets & Environment Variables ────────────────────
 .env
 .env.local
 .env.development
+.env.test
 .env.production
+.env.staging
 .env.*
 !.env.example
+!.env.template
 
-# ─── ⚡ Supabase & Cloudflare ────────────────────────────────
-.dev.vars
-.wrangler/
+# ─── ⚡ Supabase ───────────────────────────────────────────
 supabase/.temp/
+supabase/.env
+**/supabase/functions/.env
 
-# ─── 🚀 Google Services & Firebase ─────────────────────────
+# ─── ☁️ Cloudflare & Serverless ───────────────────────────
+.dev.vars
+.cloudflare/
+.wrangler/
+wrangler.secrets.toml
+
+# ─── 🚀 Google Cloud & Firebase ───────────────────────────
 google-services.json
 **/google-services.json
 GoogleService-Info.plist
 **/GoogleService-Info.plist
 service-account*.json
+gcp-key*.json
 firebase-debug.log
+.firebase/
 
-# ─── 🔐 Signing & Keys ────────────────────────────────────
+# ─── 🔐 Android Secrets & Signing Keys ────────────────────
 local.properties
 keystore.properties
 signing.properties
@@ -34,33 +45,38 @@ secring.gpg
 *.p12
 *.pem
 *.key
+*.crt
 
-# ─── 📦 Gradle & Build Caches ──────────────────────────────
+# ─── 📦 Build Outputs & Heavy Binaries ─────────────────────
+build/
+**/build/
 .gradle/
 .kotlin/
 .cxx/
 .externalNativeBuild/
-build/
-**/build/
-
-# ─── 📱 APKs & Profiling ──────────────────────────────────
+captures/
+.captures/
 *.apk
 *.aab
 *.ap_
+*.dex
 *.hprof
 *.prof
 *.trace
+*.log
 
-# ─── 💻 IDE State ─────────────────────────────────────────
-*.iml
+# ─── 💻 IDE & System Junk ─────────────────────────────────
 .idea/
+*.iml
 .navigation/
-.captures/
-captures/
 .DS_Store
+Thumbs.db
+desktop.ini
 /*.png
 /window.xml
+.vscode/
 
-# ─── 🤖 Tooling ───────────────────────────────────────────
+# ─── 🤖 Tooling & Agents ───────────────────────────────────
 .agents/
 skills-lock.json
+scratch/
