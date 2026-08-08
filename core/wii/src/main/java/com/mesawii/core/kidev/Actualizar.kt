@@ -51,6 +51,18 @@ object Actualizar {
     }
 
     /**
+     * Obtiene el versionName real instalado (ej. "2.0.0", "3.0.0")
+     */
+    fun getInstalledVersionName(context: Context): String {
+        return try {
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            packageInfo.versionName ?: "2.0.0"
+        } catch (e: Exception) {
+            "2.0.0"
+        }
+    }
+
+    /**
      * Comprobación matemática infalible: Detecta actualización si serverVersionCode > installedVersionCode
      */
     suspend fun checkUpdate(context: Context): WiVersionInfo? = withContext(Dispatchers.IO) {

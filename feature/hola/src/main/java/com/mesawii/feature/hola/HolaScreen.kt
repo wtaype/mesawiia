@@ -71,9 +71,11 @@ fun HolaScreen(
 
     val isOnline by rememberNetworkStatus()
 
-    // Estado del Actualizador PRO (Lectura Dinámica del versionCode real)
+    // Estado del Actualizador PRO
+    val installedVersionName = remember { Actualizar.getInstalledVersionName(context) }
     val installedVersionCode = remember { Actualizar.getInstalledVersionCode(context) }
-    var updateStatus     by remember { mutableStateOf("Sin verificar") }
+    
+    var updateStatus     by remember { mutableStateOf("🟢 Aplicación al día (v$installedVersionName)") }
     var isChecking       by remember { mutableStateOf(false) }
     var isDownloading    by remember { mutableStateOf(false) }
     var downloadProg     by remember { mutableFloatStateOf(0f) }
@@ -86,6 +88,7 @@ fun HolaScreen(
         if (info != null) {
             versionInfo = info
             showUpdateDialog = true
+            updateStatus = "🚀 Nueva versión v${info.versionName} disponible"
         }
     }
 
@@ -138,7 +141,7 @@ fun HolaScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header MesaWii v2.0.0
+                // Header MesaWii
                 GlassCard(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -146,10 +149,10 @@ fun HolaScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text("${Wii.app} v2.0.0 (Code: $installedVersionCode) 🍽️", style = WiText.h2, color = WiCss.tx)
+                            Text("${Wii.app} v$installedVersionName 🍽️", style = WiText.h2, color = WiCss.tx)
                             Text("Super-Scroll de Pruebas Nativa", style = WiText.small, color = WiCss.tx3)
                         }
-                        GoldPill("SHOWCASE v2.0")
+                        GoldPill("Code: $installedVersionCode")
                     }
                 }
 
@@ -329,30 +332,49 @@ fun HolaScreen(
                     Text("Manifiesto: https://mesawii.amorwii.com/version.json", style = WiText.tiny, color = WiCss.tx3)
                     Spacer(Modifier.height(8.dp))
 
-                    WiButton(
-                        text = if (isChecking) "Consultando R2..." else "🔄 Buscar Actualizaciones",
-                        loading = isChecking,
-                        onClick = {
-                            isChecking = true
-                            updateStatus = "Buscando en Cloudflare..."
-                            scope.launch {
-                                val info = Actualizar.checkUpdate(context)
-                                isChecking = false
-                                if (info != null) {
-                                    versionInfo = info
-                                    showUpdateDialog = true
-                                    updateStatus = "¡Nueva versión ${info.versionName} disponible!"
-                                    messenger.Mensaje("¡Nueva versión ${info.versionName} encontrada!")
-                                } else {
-                                    updateStatus = "Estás en la última versión oficial (v2.0.0)"
-                                    messenger.Mensaje("Estás en la versión más reciente ✓")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        WiButton(
+                            text = if (isChecking) "Buscando..." else "🔄 Buscar Actualizaciones",
+                            loading = isChecking,
+                            onClick = {
+                                isChecking = true
+                                updateStatus = "Buscando en Cloudflare..."
+                                scope.launch {
+                                    val info = Actualizar.checkUpdate(context)
+                                    isChecking = false
+                                    if (info != null) {
+                                        versionInfo = info
+                                        showUpdateDialog = true
+                                        updateStatus = "🚀 Nueva versión v${info.versionName} disponible"
+                                        messenger.Mensaje("¡Nueva versión ${info.versionName} encontrada!")
+                                    } else {
+                                        updateStatus = "🟢 Aplicación al día (v$installedVersionName)"
+                                        messenger.Mensaje("Estás en la versión más reciente ✓")
+                                    }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
 
                     Spacer(Modifier.height(8.dp))
-                    Text(updateStatus, style = WiText.small, color = WiCss.mco, fontWeight = FontWeight.Bold)
+                    
+                    // Card status PRO
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (versionInfo != null) WiCss.mco.copy(alpha = 0.15f) else WiCss.success.copy(alpha = 0.15f))
+                            .padding(12.dp)
+                    ) {
+                        Column {
+                            Text(updateStatus, style = WiText.small, color = if (versionInfo != null) WiCss.mco else WiCss.success, fontWeight = FontWeight.Bold)
+                            Text("Versión instalada: v$installedVersionName (Code: $installedVersionCode)", style = WiText.tiny, color = WiCss.tx2)
+                        }
+                    }
                 }
 
                 Spacer(Modifier.height(32.dp))
