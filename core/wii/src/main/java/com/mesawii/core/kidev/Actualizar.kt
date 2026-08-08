@@ -1,4 +1,4 @@
-// Actualizar.kt — Motor de actualización directa OTA desde Cloudflare R2
+// Actualizar.kt — Motor ultra-ligero y automático de actualizaciones OTA desde Cloudflare R2
 package com.mesawii.core.kidev
 
 import android.content.Context
@@ -6,21 +6,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import com.mesawii.core.kicss.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -41,13 +28,13 @@ data class WiVersionInfo(
 )
 
 /**
- * Actualizar — Motor centralizado de actualizaciones OTA para MesaWii
+ * Actualizar — Motor 100% automático de actualizaciones OTA
  */
 object Actualizar {
     const val MANIFEST_URL = "https://mesawii.amorwii.com/version.json"
 
     /**
-     * Obtiene dinámicamente el versionCode real instalado en Android
+     * Obtiene el versionCode real instalado en el celular (ej. 2, 3, 4...)
      */
     fun getInstalledVersionCode(context: Context): Int {
         return try {
@@ -64,24 +51,10 @@ object Actualizar {
     }
 
     /**
-     * Obtiene dinámicamente el versionName real instalado (ej. "2.0.0")
-     */
-    fun getInstalledVersionName(context: Context): String {
-        return try {
-            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            packageInfo.versionName ?: "1.0.0"
-        } catch (e: Exception) {
-            "1.0.0"
-        }
-    }
-
-    /**
-     * Consulta version.json y compara por versionCode O por versionName (soporta parches 2.1.0, 2.0.1)
+     * Comprobación matemática infalible: Detecta actualización si serverVersionCode > installedVersionCode
      */
     suspend fun checkUpdate(context: Context): WiVersionInfo? = withContext(Dispatchers.IO) {
         val currentCode = getInstalledVersionCode(context)
-        val currentName = getInstalledVersionName(context)
-        
         try {
             val url = URL(MANIFEST_URL)
             val conn = url.openConnection() as HttpURLConnection
@@ -93,16 +66,12 @@ object Actualizar {
                 val jsonString = conn.inputStream.bufferedReader().use { it.readText() }
                 val json = JSONObject(jsonString)
                 val serverCode = json.getInt("versionCode")
-                val serverName = json.optString("versionName", "1.0.0")
 
-                val isNewerCode = serverCode > currentCode
-                val isNewerName = isVersionNameGreater(serverName, currentName)
-
-                // Detecta actualización si aumenta el versionCode O si aumenta el versionName (ej. 2.1.0)
-                if (isNewerCode || isNewerName) {
+                // Si el código en la nube es mayor (ej. 3 > 2), hay nueva versión!
+                if (serverCode > currentCode) {
                     return@withContext WiVersionInfo(
                         versionCode = serverCode,
-                        versionName = serverName,
+                        versionName = json.optString("versionName", "3.0.0"),
                         apkUrl = json.getString("apkUrl"),
                         releaseNotes = json.optString("releaseNotes", "Nuevas mejoras y optimizaciones."),
                         isMandatory = json.optBoolean("isMandatory", false)
@@ -116,28 +85,7 @@ object Actualizar {
     }
 
     /**
-     * Compara nombres de versión semánticos (ej. "2.1.0" > "2.0.0")
-     */
-    private fun isVersionNameGreater(serverVersion: String, currentVersion: String): Boolean {
-        try {
-            val serverParts = serverVersion.split(".").map { it.toIntOrNull() ?: 0 }
-            val currentParts = currentVersion.split(".").map { it.toIntOrNull() ?: 0 }
-
-            val maxLength = maxOf(serverParts.size, currentParts.size)
-            for (i in 0 until maxLength) {
-                val s = serverParts.getOrElse(i) { 0 }
-                val c = currentParts.getOrElse(i) { 0 }
-                if (s > c) return true
-                if (s < c) return false
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return false
-    }
-
-    /**
-     * Descarga el archivo APK en segundo plano notificando el progreso
+     * Descarga el archivo APK en segundo plano notificando el progreso (0.0f a 1.0f)
      */
     suspend fun downloadApk(
         context: Context,
@@ -178,7 +126,7 @@ object Actualizar {
     }
 
     /**
-     * Lanza el instalador NATIVO DIRECTO de Android (sin mostrar el menú "Open with")
+     * Lanza el instalador NATIVO DIRECTO de Android
      */
     fun installApk(context: Context, apkFile: File) {
         try {
@@ -206,15 +154,6 @@ object Actualizar {
             context.startActivity(intent)
         } catch (e: Exception) {
             e.printStackTrace()
-            try {
-                val fallbackIntent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(getUriForFile(context, apkFile), "application/vnd.android.package-archive")
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                }
-                context.startActivity(fallbackIntent)
-            } catch (ex: Exception) {
-                ex.printStackTrace()
-            }
         }
     }
 
@@ -232,7 +171,7 @@ object Actualizar {
 }
 
 /**
- * 🚀 WiUpdateDialog — Popup Glassmorphic elegante para notificar actualizaciones oficiales
+ * 🚀 WiUpdateDialog — Popup Glassmorphic elegante
  */
 @Composable
 fun WiUpdateDialog(

@@ -1,6 +1,6 @@
 # ============================================================
 # 🛡️ MesaWii Android Git Ignore Policy
-# Protects against leaking API keys, secrets, and heavy binaries
+# Protects against leaking API keys, secrets, and local paths
 # ============================================================
 
 # ─── 🔑 Secrets & Environment Variables ────────────────────
@@ -14,10 +14,9 @@
 !.env.example
 !.env.template
 
-# ─── 📸 Local Screenshots & Captures ─────────────────────────
-recursos-mesawii/capturas/
-**/capturas/
-*.png
+# ─── 📸 Local Scripts & Screenshots ─────────────────────────
+wipublicar.ps1
+wicapturar.ps1
 /window.xml
 
 # ─── ⚡ Supabase ───────────────────────────────────────────

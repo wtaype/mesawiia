@@ -1,7 +1,7 @@
-{
-  "versionCode": 2,
-  "versionName": "2.1.0",
-  "apkUrl": "https://mesawii.amorwii.com/v2.1.0.apk",
-  "releaseNotes": "🚀 Gran actualización v2.1.0: Super-Scroll de Pruebas, Cámara HD, Grabador de Voz M4A y Actualizador Directo desde Cloudflare R2.",
-  "isMandatory": false
+﻿{
+    "apkUrl":  "https://mesawii.amorwii.com/v3.0.0.apk",
+    "isMandatory":  false,
+    "versionCode":  3,
+    "versionName":  "3.0.0",
+    "releaseNotes":  "Mejor proyecto mesawii"
 }
