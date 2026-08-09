@@ -18,3 +18,4 @@ rootProject.name = "MesaWii"
 include(":app")
 include(":core:wii")
 include(":feature:hola")
+include(":feature:bienvenida")

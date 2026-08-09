@@ -17,6 +17,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val currentTema: StateFlow<WiTemaColors> = _currentTema.asStateFlow()
 
     /**
+     * Resuelve la ruta inicial sincrónicamente en RAM (< 2ms) para evitar parpadeos
+     */
+    val rutaInicial: String = run {
+        val store = com.mesawii.core.kidev.wiStore(application)
+        val isFirstLaunch = store.getBool("is_first_launch", true)
+        when {
+            isFirstLaunch -> "bienvenida"
+            store.hasSesion() -> "mesas"
+            else -> "auth"
+        }
+    }
+
+    /**
      * Sincroniza y guarda la nueva preferencia de tema en WiStore
      */
     fun setTema(tema: WiTemaColors) {

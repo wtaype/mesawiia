@@ -1,4 +1,4 @@
-﻿plugins {
+plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
@@ -45,6 +45,7 @@ android {
 dependencies {
     implementation(project(":core:wii"))
     implementation(project(":feature:hola"))
+    implementation(project(":feature:bienvenida"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

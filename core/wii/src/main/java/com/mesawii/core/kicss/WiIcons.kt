@@ -1,5 +1,12 @@
-﻿package com.mesawii.core.kicss
+package com.mesawii.core.kicss
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.DateRange
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.Place
+import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -19,6 +26,14 @@ private fun buildWiIcon(name: String, pathData: String): ImageVector =
     ).build()
 
 object WiIcons {
+    val Star get() = Icons.Rounded.Star
+    val Lock get() = Icons.Rounded.Lock
+    val Menu get() = Icons.Rounded.Menu
+    val Restaurant get() = Icons.Rounded.Place
+    val PointOfSale get() = Icons.Rounded.ShoppingCart
+    val BarChart get() = Icons.Rounded.DateRange
+    val Inventory get() = Icons.Rounded.Place
+
     val Visibility: ImageVector by lazy {
         buildWiIcon(
             name     = "Visibility",

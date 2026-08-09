@@ -1,4 +1,4 @@
-﻿package com.mesawii.core.kidev
+package com.mesawii.core.kidev
 
 import com.mesawii.core.kicss.*
 
@@ -58,7 +58,7 @@ class WiStore(context: Context) {
                 remove(key)
                 null
             } else {
-                json.optString("v", null)
+                if (json.has("v")) json.getString("v") else null
             }
         } catch (e: Exception) {
             raw
@@ -73,6 +73,28 @@ class WiStore(context: Context) {
 
     fun clearAll() {
         prefs.edit().clear().apply()
+    }
+
+    // ─── Helpers de Autenticación y Sesión de Empresa ─────────────────
+    fun hasSesion(): Boolean {
+        return get("wiToken").isNotEmpty() || getls("wiSmile") != null
+    }
+
+    fun saveSesion(token: String, usuario: String, email: String, empresa: String): Boolean {
+        save("wiToken", token)
+        save("usuario", usuario)
+        save("email", email)
+        save("empresa", empresa)
+        return savels("wiSmile", usuario, 720) // 30 días
+    }
+
+    fun getEmpresaNombre(): String {
+        val emp = get("empresa")
+        return if (emp.isNotEmpty()) emp else "Hawka Cafetería"
+    }
+
+    fun cerrarSesion() {
+        remove("wiToken", "wiSmile", "usuario", "email", "empresa")
     }
 }
 

@@ -52,23 +52,24 @@ import com.mesawii.core.kicss.softGlassShadow
 fun GlassCard(
     modifier: Modifier = Modifier,
     intensity: Float = 0.55f,
+    shape: androidx.compose.ui.graphics.Shape? = null,
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val shape = WiCss.glassShape(intensity)
+    val finalShape = shape ?: WiCss.glassShape(intensity)
     val cardContent: @Composable () -> Unit = {
         Column(Modifier.padding(FzSmart.cardPad)) {
             content()
         }
     }
     val cardModifier = modifier
-        .softGlassShadow(shape = shape)
-        .clip(shape)
+        .softGlassShadow(shape = finalShape)
+        .clip(finalShape)
 
     if (onClick == null) {
         Card(
             modifier = cardModifier,
-            shape = shape,
+            shape = finalShape,
             colors = WiCss.glassColors(intensity),
             border = WiCss.glassBorder(intensity),
             content = { cardContent() },
@@ -77,7 +78,7 @@ fun GlassCard(
         Card(
             onClick = onClick,
             modifier = cardModifier,
-            shape = shape,
+            shape = finalShape,
             colors = WiCss.glassColors(intensity),
             border = WiCss.glassBorder(intensity),
             content = { cardContent() },
