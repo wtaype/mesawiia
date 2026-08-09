@@ -1,7 +1,4 @@
-﻿package com.mesawii.core.kidev
-
-import com.mesawii.core.kicss.*
-
+package com.mesawii.core.kidev
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,13 +10,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mesawii.core.kicss.WiCss
+import com.mesawii.core.kicss.dpSmart
+import com.mesawii.core.kicss.fPoppins
 import kotlin.math.abs
 
 data class WiFontScaleOption(
@@ -35,11 +34,10 @@ val WiFontScaleOptions = listOf(
 
 @Composable
 fun WiFontSizeSelector(
-    viewModel: WiMainState,
+    currentScale: Float,
+    onScaleChange: (Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val currentScale by viewModel.fontScale.collectAsState()
-
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -51,7 +49,7 @@ fun WiFontSizeSelector(
     ) {
         WiFontScaleOptions.forEach { option ->
             val isSelected = abs(currentScale - option.value) < 0.01f
-            val background = if (isSelected) WiCss.mco else androidx.compose.ui.graphics.Color.Transparent
+            val background = if (isSelected) WiCss.mco else Color.Transparent
             val textColor = if (isSelected) WiCss.white else WiCss.tx2
 
             Box(
@@ -59,7 +57,7 @@ fun WiFontSizeSelector(
                     .weight(1f)
                     .clip(RoundedCornerShape(14.dp))
                     .background(background)
-                    .clickable { viewModel.onFontScaleChange(option.value) }
+                    .clickable { onScaleChange(option.value) }
                     .padding(vertical = dpSmart(8f, 0.9f, 12f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -68,10 +66,8 @@ fun WiFontSizeSelector(
                     color = textColor,
                     fontFamily = fPoppins,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = FzSmart.button
                 )
             }
         }
     }
 }
-

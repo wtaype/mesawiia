@@ -4,9 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Person
@@ -24,10 +23,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import com.mesawii.feature.auth.lib.Serializar
 import com.mesawii.core.kicss.WiCss
 import com.mesawii.core.kicss.WiText
 import com.mesawii.core.kidev.GlassCard
@@ -35,9 +35,11 @@ import com.mesawii.core.kidev.WiButton
 import com.mesawii.core.kidev.WiField
 import com.mesawii.core.kidev.WiPassword
 import com.mesawii.feature.auth.components.GoogleButton
+import com.mesawii.feature.auth.lib.Serializar
+import com.mesawii.feature.auth.lib.Validar
 
 /**
- * 📝 Registro.kt — Formulario Enterprise con Sanitización en Tiempo Real (`Serializar.kt`).
+ * 📝 Registro.kt — Formulario Enterprise con Capitalización, Teclado Email y Validaciones en Tiempo Real (`Validar.kt`).
  */
 @Composable
 fun Registro(
@@ -55,6 +57,14 @@ fun Registro(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var aceptoTerminos by remember { mutableStateOf(false) }
+
+    // Estados de Validación en tiempo real
+    val isNombreOk = Validar.esNombreValido(nombre)
+    val isApellidosOk = Validar.esNombreValido(apellidos)
+    val isEmailOk = Validar.esEmailValido(email)
+    val isUsuarioOk = Validar.esUsuarioValido(usuario)
+    val isPasswordOk = Validar.esPasswordValida(password)
+    val isConfirmPassOk = Validar.coincidenPasswords(password, confirmPassword)
 
     GlassCard(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -84,7 +94,7 @@ fun Registro(
                 HorizontalDivider(modifier = Modifier.weight(1f), color = WiCss.brd.copy(alpha = 0.4f))
             }
 
-            // 👥 FILA 1 (2 COLUMNAS): Nombre | Apellidos
+            // 👥 FILA 1 (2 COLUMNAS): Nombre | Apellidos (Teclado Capitalizado por Palabra)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -94,6 +104,10 @@ fun Registro(
                     onValueChange = { nombre = Serializar.nombre(it) },
                     label = "Nombre",
                     leadingIcon = Icons.Rounded.Person,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words
+                    ),
+                    isSuccess = nombre.isNotBlank() && isNombreOk,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -102,41 +116,63 @@ fun Registro(
                     onValueChange = { apellidos = Serializar.nombre(it) },
                     label = "Apellidos",
                     leadingIcon = Icons.Rounded.Person,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words
+                    ),
+                    isSuccess = apellidos.isNotBlank() && isApellidosOk,
                     modifier = Modifier.weight(1f)
                 )
             }
 
-            // 📧 FILA 2: Correo Electrónico (Sanitizado en tiempo real)
+            // 📧 FILA 2: Correo Electrónico (Teclado Email con @ visible)
             WiField(
                 value = email,
                 onValueChange = { email = Serializar.email(it) },
                 label = "Correo Electrónico",
                 leadingIcon = Icons.Rounded.Email,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email
+                ),
+                isSuccess = email.isNotBlank() && isEmailOk,
+                isError = email.isNotBlank() && !isEmailOk,
+                errorMessage = if (email.isNotBlank() && !isEmailOk) "Ingresa un correo válido (ej. usuario@gmail.com)" else null,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 👤 FILA 3: Nombre de Usuario (Solo a-z0-9_ en tiempo real)
+            // 👤 FILA 3: Nombre de Usuario (Teclado ASCII minúsculas / números / _)
             WiField(
                 value = usuario,
                 onValueChange = { usuario = Serializar.usuario(it) },
                 label = "Nombre de Usuario",
                 leadingIcon = Icons.Rounded.Person,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Ascii
+                ),
+                isSuccess = usuario.isNotBlank() && isUsuarioOk,
+                isError = usuario.isNotBlank() && !isUsuarioOk,
+                errorMessage = if (usuario.isNotBlank() && !isUsuarioOk) "Mínimo 3 caracteres (solo letras minúsculas, números y _)" else null,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 🔒 FILA 4: Contraseña
+            // 🔒 FILA 4: Contraseña (Mínimo 6 caracteres)
             WiPassword(
                 value = password,
                 onValueChange = { password = it },
                 label = "Contraseña",
+                isSuccess = password.isNotBlank() && isPasswordOk,
+                isError = password.isNotBlank() && !isPasswordOk,
+                errorMessage = if (password.isNotBlank() && !isPasswordOk) "Mínimo 6 caracteres requedidos" else null,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 🔒 FILA 5: Confirmar Contraseña
+            // 🔒 FILA 5: Confirmar Contraseña (Coincidencia con Contraseña)
             WiPassword(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
                 label = "Confirmar Contraseña",
+                isSuccess = confirmPassword.isNotBlank() && isConfirmPassOk,
+                isError = confirmPassword.isNotBlank() && !isConfirmPassOk,
+                errorMessage = if (confirmPassword.isNotBlank() && !isConfirmPassOk) "Las contraseñas no coinciden" else null,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -171,10 +207,12 @@ fun Registro(
             }
 
             // 🚀 Botón Registrarme
+            val isFormularioValido = isEmailOk && isUsuarioOk && isPasswordOk && isConfirmPassOk && aceptoTerminos
+
             WiButton(
                 text = if (isLoading) "Registrando..." else "Registrar Cuenta Empresa",
                 onClick = {
-                    if (email.isNotBlank() && password.isNotBlank() && password == confirmPassword && aceptoTerminos) {
+                    if (isFormularioValido) {
                         onRegistrar(email, password, usuario, nombre, apellidos, aceptoTerminos)
                     }
                 },

@@ -86,16 +86,33 @@ object AuthApi {
             val ape = cleanName(apellidosStr)
 
             // 1. Crear usuario en Supabase Auth
-            client.auth.signUpWith(Email) {
-                email = mail
-                password = passStr
+            try {
+                client.auth.signUpWith(Email) {
+                    email = mail
+                    password = passStr
+                }
+            } catch (e: Exception) {
+                return@withContext Result.failure(Exception(e.localizedMessage ?: "Error al registrar en Supabase Auth"))
             }
 
-            val currentUserId = client.auth.currentUserOrNull()?.id
-                ?: return@withContext Result.failure(Exception("No se pudo obtener el ID de usuario"))
+            var currentUserId = client.auth.currentUserOrNull()?.id
+            if (currentUserId == null) {
+                try {
+                    client.auth.signInWith(Email) {
+                        email = mail
+                        password = passStr
+                    }
+                    currentUserId = client.auth.currentUserOrNull()?.id
+                } catch (e: Exception) {
+                    // Si requiere confirmación
+                }
+            }
+
+            val finalUserId = currentUserId
+                ?: return@withContext Result.failure(Exception("Cuenta creada. Si recibiste un correo de verificación, confírmalo para ingresar."))
 
             val smile = Smile(
-                id = currentUserId,
+                id = finalUserId,
                 usuario = usr,
                 email = mail,
                 nombre = nom,
