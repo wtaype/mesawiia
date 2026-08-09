@@ -8,6 +8,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.mesawii.app.layouts.MainLayout
 import com.mesawii.core.kicss.WiTemaApp
+import com.mesawii.feature.auth.AuthPantalla
 import com.mesawii.feature.bienvenida.BienvenidaScreen
 import com.mesawii.feature.hola.HolaScreen
 
@@ -30,6 +31,13 @@ class MainActivity : ComponentActivity() {
                         "bienvenida" -> {
                             BienvenidaScreen(
                                 onComenzar = {
+                                    navegadorState.navegarA("auth")
+                                }
+                            )
+                        }
+                        "auth" -> {
+                            AuthPantalla(
+                                onAuthExitosa = {
                                     navegadorState.navegarA("mesas")
                                 }
                             )

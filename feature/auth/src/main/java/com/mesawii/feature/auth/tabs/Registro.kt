@@ -1,0 +1,195 @@
+package com.mesawii.feature.auth.tabs
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.dp
+import com.mesawii.feature.auth.lib.Serializar
+import com.mesawii.core.kicss.WiCss
+import com.mesawii.core.kicss.WiText
+import com.mesawii.core.kidev.GlassCard
+import com.mesawii.core.kidev.WiButton
+import com.mesawii.core.kidev.WiField
+import com.mesawii.core.kidev.WiPassword
+import com.mesawii.feature.auth.components.GoogleButton
+
+/**
+ * 📝 Registro.kt — Formulario Enterprise con Sanitización en Tiempo Real (`Serializar.kt`).
+ */
+@Composable
+fun Registro(
+    onRegistrar: (email: String, pass: String, usuario: String, nombre: String, apellidos: String, aceptoTerminos: Boolean) -> Unit,
+    onGoogleAuth: () -> Unit,
+    onIrALogin: () -> Unit,
+    isLoading: Boolean = false
+) {
+    val uriHandler = LocalUriHandler.current
+
+    var email by remember { mutableStateOf("") }
+    var nombre by remember { mutableStateOf("") }
+    var apellidos by remember { mutableStateOf("") }
+    var usuario by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var aceptoTerminos by remember { mutableStateOf(false) }
+
+    GlassCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // 🌐 1. Google 1-Click Access Button (Arriba)
+            GoogleButton(
+                onClick = onGoogleAuth,
+                enabled = !isLoading,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // ────── Divisor Visual ──────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(modifier = Modifier.weight(1f), color = WiCss.brd.copy(alpha = 0.4f))
+                Text(
+                    text = "  ó regístrate con correo  ",
+                    style = WiText.small,
+                    color = WiCss.tx3,
+                    textAlign = TextAlign.Center
+                )
+                HorizontalDivider(modifier = Modifier.weight(1f), color = WiCss.brd.copy(alpha = 0.4f))
+            }
+
+            // 👥 FILA 1 (2 COLUMNAS): Nombre | Apellidos
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                WiField(
+                    value = nombre,
+                    onValueChange = { nombre = Serializar.nombre(it) },
+                    label = "Nombre",
+                    leadingIcon = Icons.Rounded.Person,
+                    modifier = Modifier.weight(1f)
+                )
+
+                WiField(
+                    value = apellidos,
+                    onValueChange = { apellidos = Serializar.nombre(it) },
+                    label = "Apellidos",
+                    leadingIcon = Icons.Rounded.Person,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            // 📧 FILA 2: Correo Electrónico (Sanitizado en tiempo real)
+            WiField(
+                value = email,
+                onValueChange = { email = Serializar.email(it) },
+                label = "Correo Electrónico",
+                leadingIcon = Icons.Rounded.Email,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // 👤 FILA 3: Nombre de Usuario (Solo a-z0-9_ en tiempo real)
+            WiField(
+                value = usuario,
+                onValueChange = { usuario = Serializar.usuario(it) },
+                label = "Nombre de Usuario",
+                leadingIcon = Icons.Rounded.Person,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // 🔒 FILA 4: Contraseña
+            WiPassword(
+                value = password,
+                onValueChange = { password = it },
+                label = "Contraseña",
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // 🔒 FILA 5: Confirmar Contraseña
+            WiPassword(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = "Confirmar Contraseña",
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // 📜 FILA 6: Checkbox Términos & Condiciones de Uso
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = aceptoTerminos,
+                    onCheckedChange = { aceptoTerminos = it },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = WiCss.mco,
+                        uncheckedColor = WiCss.brd
+                    )
+                )
+                Text(
+                    text = "Acepto los ",
+                    style = WiText.small,
+                    color = WiCss.tx3
+                )
+                Text(
+                    text = "Términos y Condiciones",
+                    style = WiText.small,
+                    color = WiCss.mco,
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable {
+                        uriHandler.openUri("http://mesawii.vercel.app/terminos")
+                    }
+                )
+            }
+
+            // 🚀 Botón Registrarme
+            WiButton(
+                text = if (isLoading) "Registrando..." else "Registrar Cuenta Empresa",
+                onClick = {
+                    if (email.isNotBlank() && password.isNotBlank() && password == confirmPassword && aceptoTerminos) {
+                        onRegistrar(email, password, usuario, nombre, apellidos, aceptoTerminos)
+                    }
+                },
+                loading = isLoading,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Enlace rápido para ir a Login
+            TextButton(onClick = onIrALogin) {
+                Text(
+                    text = "¿Ya tienes cuenta? Ingresar aquí",
+                    style = WiText.small,
+                    color = WiCss.tx3
+                )
+            }
+        }
+    }
+}
