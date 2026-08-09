@@ -8,20 +8,16 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Empresa(
-    val id: String? = null,
-    @SerialName("userId") val userId: String,
-    val empresa: String,
-    @SerialName("razon_social") val razonSocial: String? = null,
-    @SerialName("empresa_ruc") val empresaRuc: String? = null,
-    val direccion: String? = null,
-    val telefono: String? = null,
-    val celular: String? = null,
+    val id: String = "",
+    @SerialName("smile_id") val smileId: String = "",
+    val ruc: String = "",
+    @SerialName("razon_social") val razonSocial: String = "",
+    @SerialName("nombre_comercial") val nombreComercial: String = "",
+    val direccion: String = "",
+    val telefono: String = "",
+    val moneda: String = "PEN",
     val ubigeo: String? = null,
-    val logo: String? = null,
-    val pin: Boolean = false,
-    val principal: Boolean = false,
-    val activo: Boolean = true,
-    val estado: String = "activo",
-    val creado: String? = null,
-    val actualizado: String? = null
+    @SerialName("pin_sol") val pinSol: String? = null,
+    @SerialName("logo_url") val logoUrl: String? = null,
+    val creado: String? = null
 )

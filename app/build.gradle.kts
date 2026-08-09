@@ -48,6 +48,7 @@ dependencies {
     implementation(project(":feature:hola"))
     implementation(project(":feature:bienvenida"))
     implementation(project(":feature:auth"))
+    implementation(project(":feature:empresas"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
@@ -55,7 +56,3 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.core.ktx)
 }
-
-
-
-

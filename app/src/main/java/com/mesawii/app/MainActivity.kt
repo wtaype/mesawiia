@@ -10,6 +10,7 @@ import com.mesawii.app.layouts.MainLayout
 import com.mesawii.core.kicss.WiTemaApp
 import com.mesawii.feature.auth.AuthPantalla
 import com.mesawii.feature.bienvenida.BienvenidaScreen
+import com.mesawii.feature.empresas.EmpresaPantalla
 import com.mesawii.feature.hola.HolaScreen
 
 /**
@@ -38,6 +39,13 @@ class MainActivity : ComponentActivity() {
                         "auth" -> {
                             AuthPantalla(
                                 onAuthExitosa = {
+                                    navegadorState.navegarA("empresas")
+                                }
+                            )
+                        }
+                        "empresas" -> {
+                            EmpresaPantalla(
+                                onEmpresaSeleccionada = {
                                     navegadorState.navegarA("mesas")
                                 }
                             )

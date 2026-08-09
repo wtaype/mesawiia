@@ -4,8 +4,8 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.mesawii.core.data.supabase.api.AuthApi
-import com.mesawii.feature.auth.lib.Serializar
 import com.mesawii.core.kidev.wiStore
+import com.mesawii.feature.auth.lib.Serializar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,11 +41,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             val res = AuthApi.ingresar(cleanInput, pass)
             res.fold(
                 onSuccess = { smile ->
-                    store.saveSesion(
-                        token = smile.id,
+                    store.saveSmile(
+                        id = smile.id,
                         usuario = smile.usuario,
                         email = smile.email,
-                        empresa = "Hawka Cafetería"
+                        nombre = smile.nombre,
+                        apellidos = smile.apellidos,
+                        avatar = smile.avatar ?: ""
                     )
                     _uiState.value = AuthUiState(isSuccess = true)
                     onExito()
@@ -99,11 +101,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             )
             res.fold(
                 onSuccess = { smile ->
-                    store.saveSesion(
-                        token = smile.id,
+                    store.saveSmile(
+                        id = smile.id,
                         usuario = smile.usuario,
                         email = smile.email,
-                        empresa = "Hawka Cafetería"
+                        nombre = smile.nombre,
+                        apellidos = smile.apellidos,
+                        avatar = smile.avatar ?: ""
                     )
                     _uiState.value = AuthUiState(isSuccess = true)
                     onExito()
@@ -128,11 +132,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 onSuccess = { resultado ->
                     val smile = resultado.smile
                     if (!resultado.esNuevoUsuario && smile != null) {
-                        store.saveSesion(
-                            token = smile.id,
+                        store.saveSmile(
+                            id = smile.id,
                             usuario = smile.usuario,
                             email = smile.email,
-                            empresa = "Hawka Cafetería"
+                            nombre = smile.nombre,
+                            apellidos = smile.apellidos,
+                            avatar = smile.avatar ?: ""
                         )
                         _uiState.value = AuthUiState(isSuccess = true)
                         onAuthExitosa()
@@ -172,11 +178,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             )
             res.fold(
                 onSuccess = { smile ->
-                    store.saveSesion(
-                        token = smile.id,
+                    store.saveSmile(
+                        id = smile.id,
                         usuario = smile.usuario,
                         email = smile.email,
-                        empresa = "Hawka Cafetería"
+                        nombre = smile.nombre,
+                        apellidos = smile.apellidos,
+                        avatar = smile.avatar ?: ""
                     )
                     _uiState.value = AuthUiState(isSuccess = true)
                     onAuthExitosa()

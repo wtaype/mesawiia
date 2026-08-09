@@ -35,6 +35,15 @@ object Seo {
             requiereLayout = false,
             esNavPrincipal = false
         ),
+        "empresas" to MetaRuta(
+            key = "empresas",
+            titulo = "Mis Empresas & Negocios",
+            subtitulo = "Gestión de cafeterías y locales activos",
+            icono = WiIcons.Building, // Edificio (Building)
+            tabs = listOf("Mis Empresas", "Crear Nueva"),
+            requiereLayout = true,
+            esNavPrincipal = true
+        ),
         "mesas" to MetaRuta(
             key = "mesas",
             titulo = "Ventas y Control de Mesas",
@@ -73,5 +82,5 @@ object Seo {
         )
     )
 
-    val DEFAULT = METADATOS["mesas"]!!
+    val DEFAULT = METADATOS["empresas"]!!
 }

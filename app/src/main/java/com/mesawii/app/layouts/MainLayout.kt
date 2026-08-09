@@ -1,28 +1,18 @@
 package com.mesawii.app.layouts
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mesawii.app.NavegadorState
@@ -34,9 +24,7 @@ import com.mesawii.core.kicss.WiCss
 import kotlinx.coroutines.launch
 
 /**
- * 🏰 MainLayout.kt — Contenedor maestro envolvente inteligente.
- * Si requiereLayout == false (Bienvenida o Auth), muestra únicamente la pantalla limpia a pantalla completa.
- * Si requiereLayout == true, envuelve la vista con Header + Sidebar + Tabs + Footer.
+ * 🏰 MainLayout.kt — Contenedor maestro con Header 100% Ancho (0 Radius, fondo WiCss.wb unificado con StatusBar).
  */
 @Composable
 fun MainLayout(
@@ -45,67 +33,84 @@ fun MainLayout(
 ) {
     val meta = Rutas.getMeta(navegadorState.rutaActual)
     val scope = rememberCoroutineScope()
-    var isSidebarOpen by remember { mutableStateOf(false) }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     if (!meta.requiereLayout) {
-        // 🌌 Vista limpia a pantalla completa sin barras ni cromo de interfaz
+        // 🌌 Vista limpia a pantalla completa sin cromo de interfaz (Auth / Bienvenida)
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(WiCss.bg)
+                .statusBarsPadding()
         ) {
             content()
         }
     } else {
-        // 🏰 Layout Maestro para módulos operativos (Mesas, Pagar, Inventario, Reportes)
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(WiCss.bg)
+        // 🏰 ModalNavigationDrawer Flotante Overlay
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            gesturesEnabled = true,
+            drawerContent = {
+                Sidebar(
+                    rutaActiva = navegadorState.rutaActual,
+                    onSeleccionarRuta = { ruta ->
+                        navegadorState.navegarA(ruta)
+                        scope.launch { drawerState.close() }
+                    }
+                )
+            }
         ) {
-            Row(modifier = Modifier.fillMaxSize()) {
-                // Sidebar desplegable / fijo
-                AnimatedVisibility(
-                    visible = isSidebarOpen,
-                    enter = slideInHorizontally(initialOffsetX = { -it }),
-                    exit = slideOutHorizontally(targetOffsetX = { -it })
-                ) {
-                    Sidebar(
-                        rutaActiva = navegadorState.rutaActual,
-                        onSeleccionarRuta = { ruta ->
-                            navegadorState.navegarA(ruta)
-                            isSidebarOpen = false
-                        }
-                    )
-                }
-
-                // Área de Contenido Principal
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 14.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    // Header con botón de toggle de Sidebar
-                    Header(
-                        meta = meta,
-                        onToggleSidebar = { isSidebarOpen = !isSidebarOpen }
-                    )
-
-                    // Sub-pestañas contextuales
-                    if (meta.tabs.isNotEmpty()) {
-                        Tabs(
-                            tabsList = meta.tabs,
-                            tabActivaIndex = navegadorState.tabActivaIndex,
-                            onSeleccionarTab = { index ->
-                                navegadorState.seleccionarTab(index)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(WiCss.bg)
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // 1. Header 100% Ancho (Fondo WiCss.wb unificado con la StatusBar)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(WiCss.wb)
+                            .statusBarsPadding()
+                    ) {
+                        Header(
+                            meta = meta,
+                            onToggleSidebar = {
+                                scope.launch {
+                                    if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                                }
+                            },
+                            onClickAvatar = {
+                                // Reserva para navegación a cuenta/perfil
                             }
                         )
                     }
 
-                    // VISTA CENTRAL
-                    Box(modifier = Modifier.weight(1f)) {
-                        content()
+                    // 2. Contenido Central con padding reactivo desde NavegadorState/Layout
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(
+                                horizontal = navegadorState.paddingHorizontal,
+                                vertical = navegadorState.paddingVertical
+                            ),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Sub-pestañas contextuales
+                        if (meta.tabs.isNotEmpty()) {
+                            Tabs(
+                                tabsList = meta.tabs,
+                                tabActivaIndex = navegadorState.tabActivaIndex,
+                                onSeleccionarTab = { index ->
+                                    navegadorState.seleccionarTab(index)
+                                }
+                            )
+                        }
+
+                        // VISTA CENTRAL
+                        Box(modifier = Modifier.weight(1f)) {
+                            content()
+                        }
                     }
                 }
             }

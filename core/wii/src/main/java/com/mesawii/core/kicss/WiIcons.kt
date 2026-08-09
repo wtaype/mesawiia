@@ -34,6 +34,14 @@ object WiIcons {
     val BarChart get() = Icons.Rounded.DateRange
     val Inventory get() = Icons.Rounded.Place
 
+    /** Ícono de Edificio / Empresa (Building) */
+    val Building: ImageVector by lazy {
+        buildWiIcon(
+            name     = "Building",
+            pathData = "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-2v-2h2v2zm0-4h-2V7h2v2zm-4 4h-2v-2h2v2zm0-4h-2V7h2v2zm-4 4H7v-2h2v2zm0-4H7V7h2v2zm6 8H7v-2h8v2z"
+        )
+    }
+
     val Visibility: ImageVector by lazy {
         buildWiIcon(
             name     = "Visibility",
