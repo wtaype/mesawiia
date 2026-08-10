@@ -69,7 +69,7 @@ object Seo {
             icono = WiIcons.Building,
             tabs = listOf(
                 MetaTab("Mis Empresas", Icons.Rounded.Home),
-                MetaTab("Crear Nueva", Icons.Rounded.Add),
+                MetaTab("Empresa Nueva", Icons.Rounded.Add),
                 MetaTab("Ajustes", Icons.Rounded.Settings)
             ),
             requiereLayout = true
