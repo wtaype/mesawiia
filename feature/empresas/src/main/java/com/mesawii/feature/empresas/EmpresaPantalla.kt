@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.mesawii.core.kidev.FadeMain
 import com.mesawii.core.kidev.LocalWiMessenger
 import com.mesawii.core.kidev.WiDialog
 import com.mesawii.core.kidev.WiMsgType
@@ -23,7 +24,7 @@ import com.mesawii.feature.empresas.tabs.NuevoEmpresaTab
 
 /**
  * 🏢 EmpresaPantalla.kt — Orquestador UI Principal de Empresas.
- * Conectado al Pager Sincrónico 60fps de MainLayout.kt (Cero duplicación de Pager).
+ * Conectado a FadeMain para transiciones de entrada suave Fade-In (200ms) por sub-pestaña.
  */
 @Composable
 fun EmpresaPantalla(
@@ -68,114 +69,116 @@ fun EmpresaPantalla(
 
     Box(modifier = Modifier.fillMaxSize()) {
         val paddingModifier = Modifier.padding(vertical = 4.dp)
-        when (tabActivaIndex) {
-            0 -> MisEmpresasTab(
-                empresas = uiState.empresas,
-                empresaActiva = uiState.empresaActiva,
-                onSeleccionar = { empresa ->
-                    viewModel.seleccionarEmpresa(empresa)
-                },
-                onEditar = { empresa ->
-                    viewModel.prepararEdicion(empresa)
-                    onCambiarTab(1)
-                },
-                onEliminar = { empresa ->
-                    empresaAEliminar = empresa
-                },
-                onRefrescar = {
-                    viewModel.cargarEmpresas(isRefreshManual = true)
-                },
-                isRefreshing = uiState.isRefreshing,
-                onIrANuevo = {
-                    viewModel.cancelarEdicion()
-                    onCambiarTab(1)
-                },
-                modifier = paddingModifier
-            )
+        FadeMain(targetState = tabActivaIndex) { page ->
+            when (page) {
+                0 -> MisEmpresasTab(
+                    empresas = uiState.empresas,
+                    empresaActiva = uiState.empresaActiva,
+                    onSeleccionar = { empresa ->
+                        viewModel.seleccionarEmpresa(empresa)
+                    },
+                    onEditar = { empresa ->
+                        viewModel.prepararEdicion(empresa)
+                        onCambiarTab(1)
+                    },
+                    onEliminar = { empresa ->
+                        empresaAEliminar = empresa
+                    },
+                    onRefrescar = {
+                        viewModel.cargarEmpresas(isRefreshManual = true)
+                    },
+                    isRefreshing = uiState.isRefreshing,
+                    onIrANuevo = {
+                        viewModel.cancelarEdicion()
+                        onCambiarTab(1)
+                    },
+                    modifier = paddingModifier
+                )
 
-            1 -> NuevoEmpresaTab(
-                empresaAEditar = uiState.empresaAEditar,
-                onCrear = { nombreComercial, ruc, razonSocial, direccion, telefono, moneda, ubigeo, pinSol, logoUrl, activo ->
-                    viewModel.crearEmpresa(
-                        nombreComercial = nombreComercial,
-                        ruc = ruc,
-                        razonSocial = razonSocial,
-                        direccion = direccion,
-                        telefono = telefono,
-                        moneda = moneda,
-                        ubigeo = ubigeo,
-                        pinSol = pinSol,
-                        logoUrl = logoUrl,
-                        activo = activo,
-                        onExito = {
+                1 -> NuevoEmpresaTab(
+                    empresaAEditar = uiState.empresaAEditar,
+                    onCrear = { nombreComercial, ruc, razonSocial, direccion, telefono, moneda, ubigeo, pinSol, logoUrl, activo ->
+                        viewModel.crearEmpresa(
+                            nombreComercial = nombreComercial,
+                            ruc = ruc,
+                            razonSocial = razonSocial,
+                            direccion = direccion,
+                            telefono = telefono,
+                            moneda = moneda,
+                            ubigeo = ubigeo,
+                            pinSol = pinSol,
+                            logoUrl = logoUrl,
+                            activo = activo,
+                            onExito = {
+                                onCambiarTab(0)
+                            }
+                        )
+                    },
+                    onGuardarEdicion = { empresaModificada ->
+                        viewModel.guardarEdicion(empresaModificada) {
                             onCambiarTab(0)
                         }
-                    )
-                },
-                onGuardarEdicion = { empresaModificada ->
-                    viewModel.guardarEdicion(empresaModificada) {
-                        onCambiarTab(0)
-                    }
-                },
-                onConsultarSunat = { ruc, onExito ->
-                    viewModel.consultarSunat(ruc, onExito)
-                },
-                isLoading = uiState.isLoading,
-                isBuscandoSunat = uiState.isBuscandoSunat,
-                modifier = paddingModifier
-            )
+                    },
+                    onConsultarSunat = { ruc, onExito ->
+                        viewModel.consultarSunat(ruc, onExito)
+                    },
+                    isLoading = uiState.isLoading,
+                    isBuscandoSunat = uiState.isBuscandoSunat,
+                    modifier = paddingModifier
+                )
 
-            2 -> AjustesEmpresaTab(
-                empresas = uiState.empresas,
-                empresaSeleccionada = uiState.empresaActiva,
-                onSeleccionarEmpresaParaAjustes = { empresa ->
-                    viewModel.seleccionarEmpresa(empresa)
-                },
-                onGuardarAjustes = { empresa, nombre, direccion, telefono, moneda, ubigeo, pinSol, logoUrl, aceptaNota, aceptaBol, aceptaFac, ticketera ->
-                    viewModel.guardarAjustesEmpresa(
-                        empresa = empresa,
-                        nombreComercial = nombre,
-                        direccion = direccion,
-                        telefono = telefono,
-                        moneda = moneda,
-                        ubigeo = ubigeo,
-                        pinSol = pinSol,
-                        logoUrl = logoUrl,
-                        aceptaNotaVenta = aceptaNota,
-                        aceptaBoleta = aceptaBol,
-                        aceptaFactura = aceptaFac,
-                        formatoTicketera = ticketera,
-                        onExito = {
-                            onCambiarTab(0)
-                        }
-                    )
-                },
-                isLoading = uiState.isLoading,
-                modifier = paddingModifier
-            )
-            else -> MisEmpresasTab(
-                empresas = uiState.empresas,
-                empresaActiva = uiState.empresaActiva,
-                onSeleccionar = { empresa ->
-                    viewModel.seleccionarEmpresa(empresa)
-                },
-                onEditar = { empresa ->
-                    viewModel.prepararEdicion(empresa)
-                    onCambiarTab(1)
-                },
-                onEliminar = { empresa ->
-                    empresaAEliminar = empresa
-                },
-                onRefrescar = {
-                    viewModel.cargarEmpresas(isRefreshManual = true)
-                },
-                isRefreshing = uiState.isRefreshing,
-                onIrANuevo = {
-                    viewModel.cancelarEdicion()
-                    onCambiarTab(1)
-                },
-                modifier = paddingModifier
-            )
+                2 -> AjustesEmpresaTab(
+                    empresas = uiState.empresas,
+                    empresaSeleccionada = uiState.empresaActiva,
+                    onSeleccionarEmpresaParaAjustes = { empresa ->
+                        viewModel.seleccionarEmpresa(empresa)
+                    },
+                    onGuardarAjustes = { empresa, nombre, direccion, telefono, moneda, ubigeo, pinSol, logoUrl, aceptaNota, aceptaBol, aceptaFac, ticketera ->
+                        viewModel.guardarAjustesEmpresa(
+                            empresa = empresa,
+                            nombreComercial = nombre,
+                            direccion = direccion,
+                            telefono = telefono,
+                            moneda = moneda,
+                            ubigeo = ubigeo,
+                            pinSol = pinSol,
+                            logoUrl = logoUrl,
+                            aceptaNotaVenta = aceptaNota,
+                            aceptaBoleta = aceptaBol,
+                            aceptaFactura = aceptaFac,
+                            formatoTicketera = ticketera,
+                            onExito = {
+                                onCambiarTab(0)
+                            }
+                        )
+                    },
+                    isLoading = uiState.isLoading,
+                    modifier = paddingModifier
+                )
+                else -> MisEmpresasTab(
+                    empresas = uiState.empresas,
+                    empresaActiva = uiState.empresaActiva,
+                    onSeleccionar = { empresa ->
+                        viewModel.seleccionarEmpresa(empresa)
+                    },
+                    onEditar = { empresa ->
+                        viewModel.prepararEdicion(empresa)
+                        onCambiarTab(1)
+                    },
+                    onEliminar = { empresa ->
+                        empresaAEliminar = empresa
+                    },
+                    onRefrescar = {
+                        viewModel.cargarEmpresas(isRefreshManual = true)
+                    },
+                    isRefreshing = uiState.isRefreshing,
+                    onIrANuevo = {
+                        viewModel.cancelarEdicion()
+                        onCambiarTab(1)
+                    },
+                    modifier = paddingModifier
+                )
+            }
         }
     }
 }

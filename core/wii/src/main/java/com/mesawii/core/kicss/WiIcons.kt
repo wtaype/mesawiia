@@ -6,6 +6,7 @@ import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Place
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.ui.graphics.Color
@@ -35,7 +36,7 @@ object WiIcons {
     val PointOfSale get() = Icons.Rounded.ShoppingCart
     val BarChart get() = Icons.Rounded.DateRange
     val Inventory get() = Icons.Rounded.Place
-
+    val Refresh get() = Icons.Rounded.Refresh
 
     /** Ícono de Edificio / Empresa (Building) */
     val Building: ImageVector by lazy {

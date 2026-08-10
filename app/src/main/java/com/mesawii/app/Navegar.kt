@@ -1,6 +1,7 @@
 package com.mesawii.app
 
 import androidx.compose.runtime.Composable
+import com.mesawii.app.components.Modulo
 import com.mesawii.core.kicss.WiTemaColors
 import com.mesawii.feature.auth.AuthPantalla
 import com.mesawii.feature.bienvenida.BienvenidaScreen
@@ -65,11 +66,9 @@ fun Navegar(
             )
         }
         else -> {
-            LabPantalla(
-                tabActivaIndex = tabActivaIndex,
-                onCambiarTab = { nuevoIndex ->
-                    rutasState.seleccionarTab(nuevoIndex)
-                }
+            Modulo(
+                rutasState = rutasState,
+                tabActivaIndex = tabActivaIndex
             )
         }
     }

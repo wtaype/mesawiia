@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mesawii.core.kicss.WiTemaColors
+import com.mesawii.core.kidev.FadeMain
 import com.mesawii.core.kidev.WiDialog
 import com.mesawii.feature.cuenta.tabs.Ajustes
 import com.mesawii.feature.cuenta.tabs.Contrasena
@@ -25,37 +26,39 @@ fun CuentaPantalla(
     val uiState by viewModel.uiState.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        when (tabActivaIndex) {
-            0 -> General(
-                uiState = uiState,
-                onSeleccionarTema = { nombreTema ->
-                    viewModel.cambiarTema(nombreTema, onTemaCambiado)
-                },
-                onCerrarSesion = {
-                    viewModel.cerrarSesion(onCerrarSesion)
-                }
-            )
-            1 -> Perfil(
-                uiState = uiState,
-                viewModel = viewModel
-            )
-            2 -> Contrasena(
-                uiState = uiState,
-                viewModel = viewModel
-            )
-            3 -> Ajustes(
-                uiState = uiState,
-                viewModel = viewModel
-            )
-            else -> General(
-                uiState = uiState,
-                onSeleccionarTema = { nombreTema ->
-                    viewModel.cambiarTema(nombreTema, onTemaCambiado)
-                },
-                onCerrarSesion = {
-                    viewModel.cerrarSesion(onCerrarSesion)
-                }
-            )
+        FadeMain(targetState = tabActivaIndex) { page ->
+            when (page) {
+                0 -> General(
+                    uiState = uiState,
+                    onSeleccionarTema = { nombreTema ->
+                        viewModel.cambiarTema(nombreTema, onTemaCambiado)
+                    },
+                    onCerrarSesion = {
+                        viewModel.cerrarSesion(onCerrarSesion)
+                    }
+                )
+                1 -> Perfil(
+                    uiState = uiState,
+                    viewModel = viewModel
+                )
+                2 -> Contrasena(
+                    uiState = uiState,
+                    viewModel = viewModel
+                )
+                3 -> Ajustes(
+                    uiState = uiState,
+                    viewModel = viewModel
+                )
+                else -> General(
+                    uiState = uiState,
+                    onSeleccionarTema = { nombreTema ->
+                        viewModel.cambiarTema(nombreTema, onTemaCambiado)
+                    },
+                    onCerrarSesion = {
+                        viewModel.cerrarSesion(onCerrarSesion)
+                    }
+                )
+            }
         }
 
         // Modal Informativo para Funcionalidades a Futuro (Planes, Pagos, etc.)
