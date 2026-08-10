@@ -48,11 +48,13 @@ fun rememberRutas(rutaInicial: String = "empresas"): RutasState {
 }
 
 /**
- * 🗺️ Rutas — Router dinámico derivado de Seo.kt.
+ * 🗺️ Rutas — Router dinámico derivado de Seo.kt ordenado numéricamente mediante `orden`.
  */
 object Rutas {
-    /** Lista de rutas navegables principales para la Sidebar */
-    val RUTAS_SIDEBAR: List<MetaRuta> = Seo.METADATOS.values.filter { it.esNavPrincipal }
+    /** Lista de rutas navegables principales para la Sidebar ordenadas explícitamente por `orden` */
+    val RUTAS_SIDEBAR: List<MetaRuta> = Seo.METADATOS.values
+        .filter { it.orden != null }
+        .sortedBy { it.orden }
 
     /** Obtiene los metadatos de una ruta o retorna el valor por defecto */
     fun getMeta(key: String): MetaRuta = Seo.METADATOS[key] ?: Seo.DEFAULT

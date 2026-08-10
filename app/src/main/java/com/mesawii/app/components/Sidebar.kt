@@ -37,7 +37,7 @@ import com.mesawii.core.kicss.WiText
 import com.mesawii.feature.empresas.data.CacheEmpresa
 
 /**
- * 🧩 Sidebar.kt — Barra lateral con fondo WiCss.wb y statusBarsPadding() seguro, suscrita al StateFlow de la empresa activa.
+ * 🧩 Sidebar.kt — Barra lateral con fondo WiCss.wb y statusBarsPadding() seguro, limpia y configurada por orden y nombre.
  */
 @Composable
 fun Sidebar(
@@ -71,7 +71,7 @@ fun Sidebar(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.Place, // Location Icon
+                        imageVector = Icons.Rounded.Place,
                         contentDescription = null,
                         tint = WiCss.mco,
                         modifier = Modifier.size(24.dp)
@@ -87,13 +87,13 @@ fun Sidebar(
                     )
                 }
 
-                // Lista de rutas principales (Empresas usa ícono de Edificio HomeWork)
+                // Lista de rutas principales ordenadas numéricamente usando nombre
                 Rutas.RUTAS_SIDEBAR.forEach { meta ->
                     val isSelected = rutaActiva == meta.key
                     val bgColor = if (isSelected) WiCss.mco.copy(alpha = 0.2f) else WiCss.inp.copy(alpha = 0.4f)
                     val textColor = if (isSelected) WiCss.mco else WiCss.tx2
 
-                    val tituloMostrar = if (meta.key == "empresas") "Empresas" else meta.titulo.split(" ")[0]
+                    val tituloMostrar = meta.nombre ?: meta.titulo
 
                     Row(
                         modifier = Modifier
