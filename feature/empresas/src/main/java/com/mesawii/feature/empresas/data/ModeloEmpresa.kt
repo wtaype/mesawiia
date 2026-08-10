@@ -4,11 +4,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * 🏢 EmpresaModelo.kt — Modelo de dominio 1:1 de la entidad public.empresas Supabase.
+ * 🏢 ModeloEmpresa.kt — Modelo de dominio 1:1 de la entidad public.empresas Supabase.
  * Incluye soporte para `nota_venta`, `boleta`, `factura` y propiedad computada `esEmpresaActiva`.
  */
 @Serializable
-data class EmpresaModelo(
+data class ModeloEmpresa(
     val id: String? = null,
     @SerialName("userId") val smileId: String? = null,
     @SerialName("empresa") val nombreComercial: String = "",

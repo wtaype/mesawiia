@@ -49,14 +49,14 @@ import com.mesawii.core.kidev.WiButton
 import com.mesawii.core.kidev.WiField
 import com.mesawii.core.kidev.WiSwitch
 import com.mesawii.feature.empresas.api.SunatRucResult
-import com.mesawii.feature.empresas.data.EmpresaModelo
+import com.mesawii.feature.empresas.data.ModeloEmpresa
 
 /**
  * 🏢 FormularioEmpresa.kt — Formulario Reutilizable para Creación & Edición con Switch de Activo/Inactivo y Consulta SUNAT.
  */
 @Composable
 fun FormularioEmpresa(
-    empresaAEditar: EmpresaModelo? = null,
+    empresaAEditar: ModeloEmpresa? = null,
     onCrear: (
         nombreComercial: String,
         ruc: String,
@@ -69,7 +69,7 @@ fun FormularioEmpresa(
         logoUrl: String?,
         activo: Boolean
     ) -> Unit,
-    onGuardarEdicion: (EmpresaModelo) -> Unit = {},
+    onGuardarEdicion: (ModeloEmpresa) -> Unit = {},
     onConsultarSunat: (ruc: String, onExito: (SunatRucResult) -> Unit) -> Unit = { _, _ -> },
     isLoading: Boolean = false,
     isBuscandoSunat: Boolean = false,

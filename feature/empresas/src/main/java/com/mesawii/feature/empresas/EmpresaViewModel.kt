@@ -8,7 +8,7 @@ import com.mesawii.feature.empresas.api.EmpresasApi
 import com.mesawii.feature.empresas.api.SunatApi
 import com.mesawii.feature.empresas.api.SunatRucResult
 import com.mesawii.feature.empresas.data.CacheEmpresa
-import com.mesawii.feature.empresas.data.EmpresaModelo
+import com.mesawii.feature.empresas.data.ModeloEmpresa
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,9 +18,9 @@ data class EmpresaUiState(
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val isBuscandoSunat: Boolean = false,
-    val empresas: List<EmpresaModelo> = emptyList(),
-    val empresaActiva: EmpresaModelo? = null,
-    val empresaAEditar: EmpresaModelo? = null,
+    val empresas: List<ModeloEmpresa> = emptyList(),
+    val empresaActiva: ModeloEmpresa? = null,
+    val empresaAEditar: ModeloEmpresa? = null,
     val datosSunat: SunatRucResult? = null,
     val error: String? = null,
     val exitoMensaje: String? = null
@@ -48,33 +48,59 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         return store.get("wiToken")
     }
 
+    /**
+     * ⚡ Local-First 0ms Architecture:
+     * 1. Lee la caché local `empresas_lista_$smileId` inmediatamente en < 1ms (sin spinner).
+     * 2. Lanza sincronización en segundo plano con Supabase y actualiza la caché silenciosamente.
+     */
     fun cargarEmpresas(isRefreshManual: Boolean = false) {
         val smileId = obtenerSmileIdActivo()
         if (smileId.isBlank()) return
 
-        if (isRefreshManual) {
-            _uiState.value = _uiState.value.copy(isRefreshing = true)
+        // ⚡ 1. Carga Local Instantánea (0ms Latencia - Cero Pantalla de Carga)
+        val listaCache = cacheEmpresa.obtenerListaEmpresas(smileId)
+        if (listaCache.isNotEmpty()) {
+            val activaCache = cacheEmpresa.obtenerEmpresaActiva(smileId)
+                ?: listaCache.firstOrNull { it.principal }
+                ?: listaCache.firstOrNull { it.nombreComercial == cacheEmpresa.getNombreEmpresaActiva() }
+                ?: listaCache.firstOrNull()
+
+            if (activaCache != null) {
+                cacheEmpresa.guardarEmpresaActiva(activaCache, smileId)
+            }
+
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                isRefreshing = isRefreshManual,
+                empresas = listaCache,
+                empresaActiva = activaCache
+            )
         } else {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            if (!isRefreshManual) {
+                _uiState.value = _uiState.value.copy(isLoading = true)
+            }
         }
 
+        // ⚡ 2. Sincronización en Segundo Plano con Supabase
         viewModelScope.launch {
             val res = EmpresasApi.obtenerEmpresasPorSmile(smileId)
             res.fold(
-                onSuccess = { lista ->
-                    val activa = lista.firstOrNull { it.principal }
-                        ?: lista.firstOrNull { it.nombreComercial == cacheEmpresa.getNombreEmpresaActiva() }
-                        ?: lista.firstOrNull()
+                onSuccess = { listaFresca ->
+                    cacheEmpresa.guardarListaEmpresas(smileId, listaFresca)
 
-                    if (activa != null) {
-                        cacheEmpresa.guardarEmpresaActiva(activa)
+                    val activaFresca = listaFresca.firstOrNull { it.principal }
+                        ?: listaFresca.firstOrNull { it.nombreComercial == cacheEmpresa.getNombreEmpresaActiva() }
+                        ?: listaFresca.firstOrNull()
+
+                    if (activaFresca != null) {
+                        cacheEmpresa.guardarEmpresaActiva(activaFresca, smileId)
                     }
 
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isRefreshing = false,
-                        empresas = lista,
-                        empresaActiva = activa,
+                        empresas = listaFresca,
+                        empresaActiva = activaFresca,
                         exitoMensaje = if (isRefreshManual) "¡Lista de empresas actualizada!" else _uiState.value.exitoMensaje
                     )
                 },
@@ -128,7 +154,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         _uiState.value = _uiState.value.copy(isLoading = true)
 
         viewModelScope.launch {
-            val nueva = EmpresaModelo(
+            val nueva = ModeloEmpresa(
                 id = null,
                 smileId = smileId,
                 ruc = ruc.trim(),
@@ -149,8 +175,10 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
             val res = EmpresasApi.crearEmpresa(nueva)
             res.fold(
                 onSuccess = { creada ->
-                    cacheEmpresa.guardarEmpresaActiva(creada)
                     val listaActualizada = _uiState.value.empresas + creada
+                    cacheEmpresa.guardarListaEmpresas(smileId, listaActualizada)
+                    cacheEmpresa.guardarEmpresaActiva(creada, smileId)
+
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         empresas = listaActualizada,
@@ -170,7 +198,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun prepararEdicion(empresa: EmpresaModelo) {
+    fun prepararEdicion(empresa: ModeloEmpresa) {
         _uiState.value = _uiState.value.copy(empresaAEditar = empresa)
     }
 
@@ -178,14 +206,18 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         _uiState.value = _uiState.value.copy(empresaAEditar = null)
     }
 
-    fun guardarEdicion(empresa: EmpresaModelo, onExito: () -> Unit) {
+    fun guardarEdicion(empresa: ModeloEmpresa, onExito: () -> Unit) {
+        val smileId = obtenerSmileIdActivo()
         val listaOptimista = _uiState.value.empresas.map {
             if (it.id == empresa.id) empresa else it
         }
         val activaOptimista = if (_uiState.value.empresaActiva?.id == empresa.id) empresa else _uiState.value.empresaActiva
 
-        if (activaOptimista != null) {
-            cacheEmpresa.guardarEmpresaActiva(activaOptimista)
+        if (smileId.isNotBlank()) {
+            cacheEmpresa.guardarListaEmpresas(smileId, listaOptimista)
+            if (activaOptimista != null) {
+                cacheEmpresa.guardarEmpresaActiva(activaOptimista, smileId)
+            }
         }
 
         _uiState.value = _uiState.value.copy(
@@ -203,8 +235,11 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                     }
                     val activaActualizada = if (_uiState.value.empresaActiva?.id == actualizada.id) actualizada else _uiState.value.empresaActiva
 
-                    if (activaActualizada != null) {
-                        cacheEmpresa.guardarEmpresaActiva(activaActualizada)
+                    if (smileId.isNotBlank()) {
+                        cacheEmpresa.guardarListaEmpresas(smileId, listaActualizada)
+                        if (activaActualizada != null) {
+                            cacheEmpresa.guardarEmpresaActiva(activaActualizada, smileId)
+                        }
                     }
 
                     _uiState.value = _uiState.value.copy(
@@ -226,9 +261,10 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun toggleCampoEmpresa(empresa: EmpresaModelo, campo: String, nuevoValor: Boolean) {
+    fun toggleCampoEmpresa(empresa: ModeloEmpresa, campo: String, nuevoValor: Boolean) {
         val id = empresa.id ?: return
-        
+        val smileId = obtenerSmileIdActivo()
+
         val empresaModificada = when (campo) {
             "nota_venta" -> empresa.copy(notaVenta = nuevoValor)
             "boleta" -> empresa.copy(boleta = nuevoValor)
@@ -247,14 +283,17 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
 
         val estadoTexto = if (nuevoValor) "activada" else "desactivada"
 
-        // ⚡ 1. Actualización Optimista e Inmediata (< 1ms)
+        // ⚡ 1. Actualización Local Instantánea (< 1ms)
         val listaActualizada = _uiState.value.empresas.map {
             if (it.id == id) empresaModificada else it
         }
         val activaActualizada = if (_uiState.value.empresaActiva?.id == id) empresaModificada else _uiState.value.empresaActiva
 
-        if (activaActualizada != null) {
-            cacheEmpresa.guardarEmpresaActiva(activaActualizada)
+        if (smileId.isNotBlank()) {
+            cacheEmpresa.guardarListaEmpresas(smileId, listaActualizada)
+            if (activaActualizada != null) {
+                cacheEmpresa.guardarEmpresaActiva(activaActualizada, smileId)
+            }
         }
 
         _uiState.value = _uiState.value.copy(
@@ -263,18 +302,15 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
             exitoMensaje = "¡$nombreCampo $estadoTexto para ${empresa.nombreComercial}!"
         )
 
-        // ⚡ 2. Persistencia atómica en Supabase mediante DSL nativo
+        // ⚡ 2. Persistencia en Supabase en Segundo Plano
         viewModelScope.launch {
-            if (campo == "activo") {
-                EmpresasApi.actualizarCampoBoolean(id, "activo", nuevoValor)
-            } else {
-                EmpresasApi.actualizarCampoBoolean(id, campo, nuevoValor)
-            }
+            EmpresasApi.actualizarCampoBoolean(id, campo, nuevoValor)
         }
     }
 
-    fun eliminarEmpresa(empresa: EmpresaModelo) {
+    fun eliminarEmpresa(empresa: ModeloEmpresa) {
         val id = empresa.id ?: return
+        val smileId = obtenerSmileIdActivo()
         _uiState.value = _uiState.value.copy(isLoading = true)
 
         viewModelScope.launch {
@@ -284,8 +320,11 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                     val listaFiltrada = _uiState.value.empresas.filter { it.id != id }
                     val nuevaActiva = if (_uiState.value.empresaActiva?.id == id) listaFiltrada.firstOrNull() else _uiState.value.empresaActiva
 
-                    if (nuevaActiva != null) {
-                        cacheEmpresa.guardarEmpresaActiva(nuevaActiva)
+                    if (smileId.isNotBlank()) {
+                        cacheEmpresa.guardarListaEmpresas(smileId, listaFiltrada)
+                        if (nuevaActiva != null) {
+                            cacheEmpresa.guardarEmpresaActiva(nuevaActiva, smileId)
+                        }
                     }
 
                     _uiState.value = _uiState.value.copy(
@@ -307,7 +346,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun guardarAjustesEmpresa(
-        empresa: EmpresaModelo,
+        empresa: ModeloEmpresa,
         nombreComercial: String,
         direccion: String,
         telefono: String,
@@ -321,6 +360,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         formatoTicketera: String,
         onExito: () -> Unit
     ) {
+        val smileId = obtenerSmileIdActivo()
         val actualizada = empresa.copy(
             nombreComercial = nombreComercial.trim(),
             direccion = direccion.trim(),
@@ -337,8 +377,11 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         }
         val activaOptimista = if (_uiState.value.empresaActiva?.id == actualizada.id) actualizada else _uiState.value.empresaActiva
 
-        if (activaOptimista != null) {
-            cacheEmpresa.guardarEmpresaActiva(activaOptimista)
+        if (smileId.isNotBlank()) {
+            cacheEmpresa.guardarListaEmpresas(smileId, listaOptimista)
+            if (activaOptimista != null) {
+                cacheEmpresa.guardarEmpresaActiva(activaOptimista, smileId)
+            }
         }
 
         _uiState.value = _uiState.value.copy(
@@ -351,9 +394,12 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
             val res = EmpresasApi.actualizarEmpresa(actualizada)
             res.fold(
                 onSuccess = { ok ->
-                    cacheEmpresa.guardarEmpresaActiva(ok)
                     val listaActualizada = _uiState.value.empresas.map {
                         if (it.id == ok.id) ok else it
+                    }
+                    if (smileId.isNotBlank()) {
+                        cacheEmpresa.guardarListaEmpresas(smileId, listaActualizada)
+                        cacheEmpresa.guardarEmpresaActiva(ok, smileId)
                     }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -373,7 +419,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun seleccionarEmpresa(empresa: EmpresaModelo) {
+    fun seleccionarEmpresa(empresa: ModeloEmpresa) {
         val idSeleccionado = empresa.id ?: return
         val smileId = obtenerSmileIdActivo()
 
@@ -383,7 +429,11 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
             item.copy(principal = esSeleccionada)
         }
 
-        cacheEmpresa.guardarEmpresaActiva(empresaConPrincipal)
+        if (smileId.isNotBlank()) {
+            cacheEmpresa.guardarListaEmpresas(smileId, listaActualizada)
+            cacheEmpresa.guardarEmpresaActiva(empresaConPrincipal, smileId)
+        }
+
         _uiState.value = _uiState.value.copy(
             empresas = listaActualizada,
             empresaActiva = empresaConPrincipal,

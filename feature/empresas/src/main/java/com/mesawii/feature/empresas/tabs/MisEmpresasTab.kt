@@ -21,18 +21,18 @@ import com.mesawii.core.kidev.WiButton
 import com.mesawii.core.kidev.WiMain
 import com.mesawii.core.kidev.wiSwipe
 import com.mesawii.feature.empresas.cards.EmpresaCard
-import com.mesawii.feature.empresas.data.EmpresaModelo
+import com.mesawii.feature.empresas.data.ModeloEmpresa
 
 /**
  * 🏢 MisEmpresasTab.kt — Sub-pantalla (Pestaña 0): Lista de Empresas Registradas con Pull-to-Refresh exclusivo.
  */
 @Composable
 fun MisEmpresasTab(
-    empresas: List<EmpresaModelo>,
-    empresaActiva: EmpresaModelo?,
-    onSeleccionar: (EmpresaModelo) -> Unit,
-    onEditar: (EmpresaModelo) -> Unit = {},
-    onEliminar: (EmpresaModelo) -> Unit = {},
+    empresas: List<ModeloEmpresa>,
+    empresaActiva: ModeloEmpresa?,
+    onSeleccionar: (ModeloEmpresa) -> Unit,
+    onEditar: (ModeloEmpresa) -> Unit = {},
+    onEliminar: (ModeloEmpresa) -> Unit = {},
     onRefrescar: () -> Unit = {},
     isRefreshing: Boolean = false,
     onIrANuevo: () -> Unit,

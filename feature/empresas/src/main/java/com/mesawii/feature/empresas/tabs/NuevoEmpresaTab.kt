@@ -6,14 +6,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.mesawii.feature.empresas.api.SunatRucResult
 import com.mesawii.feature.empresas.components.FormularioEmpresa
-import com.mesawii.feature.empresas.data.EmpresaModelo
+import com.mesawii.feature.empresas.data.ModeloEmpresa
 
 /**
  * 📝 NuevoEmpresaTab.kt — Sub-pantalla (Pestaña 1): Formulario Reutilizable de Registro y Edición con Consulta SUNAT.
  */
 @Composable
 fun NuevoEmpresaTab(
-    empresaAEditar: EmpresaModelo? = null,
+    empresaAEditar: ModeloEmpresa? = null,
     onCrear: (
         nombreComercial: String,
         ruc: String,
@@ -26,7 +26,7 @@ fun NuevoEmpresaTab(
         logoUrl: String?,
         activo: Boolean
     ) -> Unit,
-    onGuardarEdicion: (EmpresaModelo) -> Unit = {},
+    onGuardarEdicion: (ModeloEmpresa) -> Unit = {},
     onConsultarSunat: (ruc: String, onExito: (SunatRucResult) -> Unit) -> Unit,
     isLoading: Boolean = false,
     isBuscandoSunat: Boolean = false,

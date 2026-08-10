@@ -1,7 +1,7 @@
 package com.mesawii.feature.empresas.api
 
 import com.mesawii.core.data.supabase.Cliente
-import com.mesawii.feature.empresas.data.EmpresaModelo
+import com.mesawii.feature.empresas.data.ModeloEmpresa
 import io.github.jan.supabase.exceptions.RestException
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
@@ -9,17 +9,17 @@ import kotlinx.coroutines.withContext
 
 /**
  * 🏢 EmpresasApi.kt — Servicio remoto PostgREST oficial para public.empresas en Supabase exclusivo de feature/empresas.
- * Utiliza el DSL nativo `update { set(...) }` de Supabase Kotlin SDK para garantizar tipos booleanos estrictos en PostgreSQL.
+ * Utiliza el DSL nativo `update { set(...) }` de Supabase Kotlin SDK para garantizar tipos booleanos strictly en PostgreSQL.
  */
 object EmpresasApi {
     private val client get() = Cliente.instancia
 
-    suspend fun obtenerEmpresasPorSmile(smileId: String): Result<List<EmpresaModelo>> = withContext(Dispatchers.IO) {
+    suspend fun obtenerEmpresasPorSmile(smileId: String): Result<List<ModeloEmpresa>> = withContext(Dispatchers.IO) {
         try {
             if (smileId.isBlank()) return@withContext Result.success(emptyList())
             val lista = client.postgrest["empresas"]
                 .select { filter { eq("userId", smileId) } }
-                .decodeList<EmpresaModelo>()
+                .decodeList<ModeloEmpresa>()
             Result.success(lista)
         } catch (e: RestException) {
             Result.failure(Exception("Error de consulta en Supabase (${e.statusCode}): ${e.error}"))
@@ -28,11 +28,11 @@ object EmpresasApi {
         }
     }
 
-    suspend fun crearEmpresa(empresa: EmpresaModelo): Result<EmpresaModelo> = withContext(Dispatchers.IO) {
+    suspend fun crearEmpresa(empresa: ModeloEmpresa): Result<ModeloEmpresa> = withContext(Dispatchers.IO) {
         try {
             val creada = client.postgrest["empresas"]
                 .insert(empresa) { select() }
-                .decodeSingle<EmpresaModelo>()
+                .decodeSingle<ModeloEmpresa>()
             Result.success(creada)
         } catch (e: RestException) {
             Result.failure(Exception("Error RLS en Supabase (${e.statusCode}): La tabla public.empresas rechazó el registro por políticas RLS."))
@@ -47,7 +47,7 @@ object EmpresasApi {
         }
     }
 
-    suspend fun actualizarEmpresa(empresa: EmpresaModelo): Result<EmpresaModelo> = withContext(Dispatchers.IO) {
+    suspend fun actualizarEmpresa(empresa: ModeloEmpresa): Result<ModeloEmpresa> = withContext(Dispatchers.IO) {
         try {
             val idActualizar = empresa.id ?: return@withContext Result.failure(IllegalArgumentException("ID de empresa nulo"))
             
@@ -69,7 +69,7 @@ object EmpresasApi {
             }) {
                 filter { eq("id", idActualizar) }
                 select()
-            }.decodeSingle<EmpresaModelo>()
+            }.decodeSingle<ModeloEmpresa>()
             
             Result.success(desdedb)
         } catch (e: RestException) {

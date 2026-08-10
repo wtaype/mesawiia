@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.mesawii.core.kicss.WiCss
 import com.mesawii.core.kicss.WiText
 import com.mesawii.core.kidev.GoldPill
-import com.mesawii.feature.empresas.data.EmpresaModelo
+import com.mesawii.feature.empresas.data.ModeloEmpresa
 
 /**
  * 🃏 EmpresaCard.kt — Tarjeta visual pro de empresa con diferenciación inconfundible:
@@ -40,7 +40,7 @@ import com.mesawii.feature.empresas.data.EmpresaModelo
  */
 @Composable
 fun EmpresaCard(
-    empresa: EmpresaModelo,
+    empresa: ModeloEmpresa,
     esActiva: Boolean = false,
     onSeleccionar: () -> Unit = {},
     onEditar: () -> Unit = {},

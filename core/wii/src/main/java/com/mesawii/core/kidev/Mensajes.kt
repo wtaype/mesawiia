@@ -1,7 +1,6 @@
-﻿package com.mesawii.core.kidev
+package com.mesawii.core.kidev
 
 import com.mesawii.core.kicss.*
-
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -84,16 +83,19 @@ fun WiMessengerProvider(messenger: WiMessenger = rememberWiMessenger(), content:
     CompositionLocalProvider(LocalWiMessenger provides messenger, content = content)
 }
 
+/**
+ * 🌟 WiMessengerHost — Contenedor de notificaciones flotantes con alineación Top al 5% de pantalla (top = 10dp).
+ */
 @Composable
 fun WiMessengerHost(messenger: WiMessenger, modifier: Modifier = Modifier) {
     Box(modifier.fillMaxSize().zIndex(50f)) {
-        // Notificación flotante en el Top
+        // Notificación flotante en el Top (5% de pantalla desde el inicio)
         WiNotificacionView(
             msg = messenger.notificacion,
             onDone = messenger::clearNotificacion,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = dpSmart(65f, 7.5f, 85f), start = 18.dp, end = 18.dp),
+                .padding(top = 10.dp, start = 18.dp, end = 18.dp),
         )
         // Mensaje flotante en el Bottom
         WiMensajeView(
@@ -170,9 +172,7 @@ fun WiMsgType.wiColor(): Color = when (this) {
 
 fun WiMsgType.wiIcon(): ImageVector = when (this) {
     WiMsgType.Success -> Icons.Rounded.CheckCircle
-    WiMsgType.Error   -> Icons.Rounded.Warning   // Warning es el más cercano disponible en core
+    WiMsgType.Error   -> Icons.Rounded.Warning
     WiMsgType.Warning -> Icons.Rounded.Warning
     WiMsgType.Info    -> Icons.Rounded.Info
 }
-
-

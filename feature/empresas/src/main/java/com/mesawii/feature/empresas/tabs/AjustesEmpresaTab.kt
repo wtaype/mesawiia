@@ -38,18 +38,18 @@ import com.mesawii.core.kidev.WiField
 import com.mesawii.core.kidev.WiMain
 import com.mesawii.core.kidev.WiSelect
 import com.mesawii.core.kidev.WiSwitch
-import com.mesawii.feature.empresas.data.EmpresaModelo
+import com.mesawii.feature.empresas.data.ModeloEmpresa
 
 /**
  * ⚙️ AjustesEmpresaTab.kt — Sub-pantalla (Pestaña 2): Ajustes y Configuración de Empresa con WiSelect y Switches Apple Pro Reactivos.
  */
 @Composable
 fun AjustesEmpresaTab(
-    empresas: List<EmpresaModelo>,
-    empresaSeleccionada: EmpresaModelo?,
-    onSeleccionarEmpresaParaAjustes: (EmpresaModelo) -> Unit,
+    empresas: List<ModeloEmpresa>,
+    empresaSeleccionada: ModeloEmpresa?,
+    onSeleccionarEmpresaParaAjustes: (ModeloEmpresa) -> Unit,
     onGuardarAjustes: (
-        empresa: EmpresaModelo,
+        empresa: ModeloEmpresa,
         nombreComercial: String,
         direccion: String,
         telefono: String,
@@ -62,7 +62,7 @@ fun AjustesEmpresaTab(
         aceptaFactura: Boolean,
         formatoTicketera: String
     ) -> Unit,
-    onToggleCampo: (empresa: EmpresaModelo, campo: String, nuevoValor: Boolean) -> Unit = { _, _, _ -> },
+    onToggleCampo: (empresa: ModeloEmpresa, campo: String, nuevoValor: Boolean) -> Unit = { _, _, _ -> },
     isLoading: Boolean = false,
     modifier: Modifier = Modifier
 ) {

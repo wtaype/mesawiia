@@ -18,7 +18,7 @@ import com.mesawii.core.kidev.WiDialog
 import com.mesawii.core.kidev.WiMessengerHost
 import com.mesawii.core.kidev.WiMsgType
 import com.mesawii.core.kidev.rememberWiMessenger
-import com.mesawii.feature.empresas.data.EmpresaModelo
+import com.mesawii.feature.empresas.data.ModeloEmpresa
 import com.mesawii.feature.empresas.tabs.AjustesEmpresaTab
 import com.mesawii.feature.empresas.tabs.MisEmpresasTab
 import com.mesawii.feature.empresas.tabs.NuevoEmpresaTab
@@ -38,7 +38,7 @@ fun EmpresaPantalla(
     val uiState by viewModel.uiState.collectAsState()
     val messenger = rememberWiMessenger()
 
-    var empresaAEliminar by remember { mutableStateOf<EmpresaModelo?>(null) }
+    var empresaAEliminar by remember { mutableStateOf<ModeloEmpresa?>(null) }
 
     LaunchedEffect(uiState.exitoMensaje, uiState.error) {
         uiState.exitoMensaje?.let { msg ->
@@ -185,7 +185,7 @@ fun EmpresaPantalla(
             }
         }
 
-        // 🌟 Sistema Premium de Notificación Flotante kidev (remplaza la barra negra SnackbarHost)
+        // 🌟 Sistema Premium de Notificación Flotante kidev
         WiMessengerHost(messenger = messenger)
     }
 }
