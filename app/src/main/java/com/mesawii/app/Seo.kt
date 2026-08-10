@@ -2,10 +2,13 @@ package com.mesawii.app
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Settings
+
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.mesawii.core.kicss.WiIcons
 
@@ -140,8 +143,24 @@ object Seo {
                 MetaTab("Lab 3", Icons.Rounded.Info)
             ),
             requiereLayout = true
+        ),
+        "cuenta" to MetaRuta(
+            orden = null,
+            key = "cuenta",
+            nombre = "Cuenta",
+            titulo = "Cuenta & Configuración",
+            subtitulo = "Gestión de perfil, seguridad y preferencias del sistema",
+            icono = WiIcons.Person,
+            tabs = listOf(
+                MetaTab("General", Icons.Rounded.Person),
+                MetaTab("Perfil", Icons.Rounded.Edit),
+                MetaTab("Contraseña", Icons.Rounded.Lock),
+                MetaTab("Ajustes", Icons.Rounded.Settings)
+            ),
+            requiereLayout = true
         )
     )
+
 
     val DEFAULT = METADATOS["empresas"]!!
 }

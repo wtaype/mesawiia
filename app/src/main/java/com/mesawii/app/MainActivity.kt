@@ -30,7 +30,13 @@ class MainActivity : ComponentActivity() {
                 WiMessengerProvider(messenger = messenger) {
                     WiMessengerHost(messenger = messenger)
                     MainLayout(rutasState = rutasState) {
-                        Navegar(rutasState = rutasState)
+                        Navegar(
+                            rutasState = rutasState,
+                            onTemaCambiado = { nuevoTema ->
+                                mainViewModel.setTema(nuevoTema)
+                            }
+                        )
+
                     }
                 }
             }

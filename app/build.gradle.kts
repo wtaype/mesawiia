@@ -49,6 +49,8 @@ dependencies {
     implementation(project(":feature:bienvenida"))
     implementation(project(":feature:auth"))
     implementation(project(":feature:empresas"))
+    implementation(project(":feature:cuenta"))
+
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

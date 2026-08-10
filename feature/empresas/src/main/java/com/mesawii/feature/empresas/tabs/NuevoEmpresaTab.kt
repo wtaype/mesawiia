@@ -6,12 +6,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.mesawii.feature.empresas.api.SunatRucResult
 import com.mesawii.feature.empresas.components.FormularioEmpresa
+import com.mesawii.feature.empresas.data.EmpresaModelo
 
 /**
- * 📝 NuevoEmpresaTab.kt — Sub-pantalla (Pestaña 1): Formulario de Registro con Consulta SUNAT.
+ * 📝 NuevoEmpresaTab.kt — Sub-pantalla (Pestaña 1): Formulario Reutilizable de Registro y Edición con Consulta SUNAT.
  */
 @Composable
 fun NuevoEmpresaTab(
+    empresaAEditar: EmpresaModelo? = null,
     onCrear: (
         nombreComercial: String,
         ruc: String,
@@ -21,8 +23,10 @@ fun NuevoEmpresaTab(
         moneda: String,
         ubigeo: String?,
         pinSol: String?,
-        logoUrl: String?
+        logoUrl: String?,
+        activo: Boolean
     ) -> Unit,
+    onGuardarEdicion: (EmpresaModelo) -> Unit = {},
     onConsultarSunat: (ruc: String, onExito: (SunatRucResult) -> Unit) -> Unit,
     isLoading: Boolean = false,
     isBuscandoSunat: Boolean = false,
@@ -31,7 +35,9 @@ fun NuevoEmpresaTab(
     LazyColumn(modifier = modifier.fillMaxSize()) {
         item {
             FormularioEmpresa(
+                empresaAEditar = empresaAEditar,
                 onCrear = onCrear,
+                onGuardarEdicion = onGuardarEdicion,
                 onConsultarSunat = onConsultarSunat,
                 isLoading = isLoading,
                 isBuscandoSunat = isBuscandoSunat

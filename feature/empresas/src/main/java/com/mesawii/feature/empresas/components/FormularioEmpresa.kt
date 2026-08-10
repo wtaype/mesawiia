@@ -47,14 +47,16 @@ import com.mesawii.core.kicss.WiCss
 import com.mesawii.core.kicss.WiText
 import com.mesawii.core.kidev.WiButton
 import com.mesawii.core.kidev.WiField
+import com.mesawii.core.kidev.WiSwitch
 import com.mesawii.feature.empresas.api.SunatRucResult
+import com.mesawii.feature.empresas.data.EmpresaModelo
 
 /**
- * 🏢 FormularioEmpresa.kt — Formulario VIP con borde Glass (WiCss.glassBrd), RUC en 1 sola línea con Consulta SUNAT,
- * columna única simplificada y toggle de Datos Avanzados.
+ * 🏢 FormularioEmpresa.kt — Formulario Reutilizable para Creación & Edición con Switch de Activo/Inactivo y Consulta SUNAT.
  */
 @Composable
 fun FormularioEmpresa(
+    empresaAEditar: EmpresaModelo? = null,
     onCrear: (
         nombreComercial: String,
         ruc: String,
@@ -64,24 +66,29 @@ fun FormularioEmpresa(
         moneda: String,
         ubigeo: String?,
         pinSol: String?,
-        logoUrl: String?
+        logoUrl: String?,
+        activo: Boolean
     ) -> Unit,
+    onGuardarEdicion: (EmpresaModelo) -> Unit = {},
     onConsultarSunat: (ruc: String, onExito: (SunatRucResult) -> Unit) -> Unit = { _, _ -> },
     isLoading: Boolean = false,
     isBuscandoSunat: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    var ruc by remember { mutableStateOf("") }
-    var razonSocial by remember { mutableStateOf("") }
-    var nombreComercial by remember { mutableStateOf("") }
-    var direccion by remember { mutableStateOf("") }
-    var telefono by remember { mutableStateOf("") }
-    var moneda by remember { mutableStateOf("PEN") }
-    var ubigeo by remember { mutableStateOf("") }
-    var pinSol by remember { mutableStateOf("") }
-    var logoUrl by remember { mutableStateOf("") }
+    val esModoEdicion = empresaAEditar != null
 
-    var mostrarAvanzados by remember { mutableStateOf(false) }
+    var ruc by remember(empresaAEditar) { mutableStateOf(empresaAEditar?.ruc ?: "") }
+    var razonSocial by remember(empresaAEditar) { mutableStateOf(empresaAEditar?.razonSocial ?: "") }
+    var nombreComercial by remember(empresaAEditar) { mutableStateOf(empresaAEditar?.nombreComercial ?: "") }
+    var direccion by remember(empresaAEditar) { mutableStateOf(empresaAEditar?.direccion ?: "") }
+    var telefono by remember(empresaAEditar) { mutableStateOf(empresaAEditar?.telefono ?: "") }
+    var moneda by remember(empresaAEditar) { mutableStateOf("PEN") }
+    var ubigeo by remember(empresaAEditar) { mutableStateOf(empresaAEditar?.ubigeo ?: "") }
+    var pinSol by remember(empresaAEditar) { mutableStateOf("") }
+    var logoUrl by remember(empresaAEditar) { mutableStateOf(empresaAEditar?.logo ?: "") }
+    var activo by remember(empresaAEditar) { mutableStateOf(empresaAEditar?.esEmpresaActiva ?: true) }
+
+    var mostrarAvanzados by remember(empresaAEditar) { mutableStateOf(esModoEdicion) }
 
     val isRucOk = ruc.trim().length == 11 && ruc.all { it.isDigit() }
     val isNombreOk = nombreComercial.trim().length >= 2 || razonSocial.trim().length >= 2
@@ -111,7 +118,7 @@ fun FormularioEmpresa(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "Registrar Nueva Empresa",
+                text = if (esModoEdicion) "Editar Empresa: ${empresaAEditar?.nombreComercial}" else "Registrar Nueva Empresa",
                 style = WiText.h4,
                 color = WiCss.tx,
                 fontWeight = FontWeight.Bold
@@ -314,12 +321,36 @@ fun FormularioEmpresa(
                 }
             }
 
-            // Botón Crear Empresa
+            // 🎚️ Switch de Activar/Desactivar Empresa en el Formulario
+            WiSwitch(
+                checked = activo,
+                onCheckedChange = { activo = it },
+                label = "Estado de Operación de la Empresa",
+                sublabel = if (activo) "Habilitada para ventas y operaciones" else "Desactivada temporalmente",
+                activeTrackColor = WiCss.success
+            )
+
+            // Botón Crear / Guardar Edición
             WiButton(
-                text = if (isLoading) "Guardando..." else "Registrar Empresa y Continuar",
+                text = if (isLoading) "Guardando..." else if (esModoEdicion) "Guardar Cambios de Empresa" else "Registrar Empresa y Continuar",
                 onClick = {
                     if (isFormularioValido) {
-                        onCrear(nombreComercial, ruc, razonSocial, direccion, telefono, moneda, ubigeo, pinSol, logoUrl)
+                        if (esModoEdicion && empresaAEditar != null) {
+                            val empresaModificada = empresaAEditar.copy(
+                                ruc = ruc.trim(),
+                                razonSocial = razonSocial.trim(),
+                                nombreComercial = nombreComercial.trim(),
+                                direccion = direccion.trim(),
+                                telefono = telefono.trim(),
+                                ubigeo = ubigeo.trim(),
+                                logo = logoUrl.trim(),
+                                activo = activo,
+                                estado = if (activo) "activo" else "inactivo"
+                            )
+                            onGuardarEdicion(empresaModificada)
+                        } else {
+                            onCrear(nombreComercial, ruc, razonSocial, direccion, telefono, moneda, ubigeo, pinSol, logoUrl, activo)
+                        }
                     }
                 },
                 loading = isLoading,

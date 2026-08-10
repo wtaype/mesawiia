@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Place
@@ -35,14 +36,18 @@ import com.mesawii.core.kicss.WiText
 import com.mesawii.core.kidev.WiButton
 import com.mesawii.core.kidev.WiField
 import com.mesawii.core.kidev.WiMain
+import com.mesawii.core.kidev.WiSelect
+import com.mesawii.core.kidev.WiSwitch
 import com.mesawii.feature.empresas.data.EmpresaModelo
 
 /**
- * ⚙️ AjustesEmpresaTab.kt — Sub-pantalla (Pestaña 2): Ajustes y Configuración de la Empresa Activa enmarcada en WiMain.
+ * ⚙️ AjustesEmpresaTab.kt — Sub-pantalla (Pestaña 2): Ajustes y Configuración de Empresa con WiSelect y Switches Apple Pro.
  */
 @Composable
 fun AjustesEmpresaTab(
-    empresa: EmpresaModelo?,
+    empresas: List<EmpresaModelo>,
+    empresaSeleccionada: EmpresaModelo?,
+    onSeleccionarEmpresaParaAjustes: (EmpresaModelo) -> Unit,
     onGuardarAjustes: (
         empresa: EmpresaModelo,
         nombreComercial: String,
@@ -51,12 +56,16 @@ fun AjustesEmpresaTab(
         moneda: String,
         ubigeo: String?,
         pinSol: String?,
-        logoUrl: String?
+        logoUrl: String?,
+        aceptaNotaVenta: Boolean,
+        aceptaBoleta: Boolean,
+        aceptaFactura: Boolean,
+        formatoTicketera: String
     ) -> Unit,
     isLoading: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    if (empresa == null) {
+    if (empresas.isEmpty()) {
         WiMain(modifier = modifier) {
             Box(
                 modifier = Modifier
@@ -65,7 +74,7 @@ fun AjustesEmpresaTab(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Selecciona una empresa registrada para configurar sus ajustes",
+                    text = "Registra una empresa primero para configurar sus ajustes y facturación",
                     style = WiText.body,
                     color = WiCss.tx3
                 )
@@ -74,19 +83,51 @@ fun AjustesEmpresaTab(
         return
     }
 
-    var nombreComercial by remember(empresa) { mutableStateOf(empresa.nombreComercial) }
-    var direccion by remember(empresa) { mutableStateOf(empresa.direccion) }
-    var telefono by remember(empresa) { mutableStateOf(empresa.telefono) }
-    var moneda by remember(empresa) { mutableStateOf("PEN") }
-    var ubigeo by remember(empresa) { mutableStateOf(empresa.ubigeo ?: "") }
-    var pinSol by remember(empresa) { mutableStateOf("") }
-    var logoUrl by remember(empresa) { mutableStateOf(empresa.logo ?: "") }
+    val empresaActual = empresaSeleccionada ?: empresas.first()
+    val opcionesEmpresas = empresas.map { it.nombreComercial.ifBlank { "Empresa sin nombre" } }
+
+    var nombreComercial by remember(empresaActual) { mutableStateOf(empresaActual.nombreComercial) }
+    var direccion by remember(empresaActual) { mutableStateOf(empresaActual.direccion ?: "") }
+    var telefono by remember(empresaActual) { mutableStateOf(empresaActual.telefono ?: "") }
+    var moneda by remember(empresaActual) { mutableStateOf("PEN") }
+    var ubigeo by remember(empresaActual) { mutableStateOf(empresaActual.ubigeo ?: "") }
+    var pinSol by remember(empresaActual) { mutableStateOf("") }
+    var logoUrl by remember(empresaActual) { mutableStateOf(empresaActual.logo ?: "") }
+
+    // 🎚️ Switches de Comprobantes (Estilo Apple / iOS Pro)
+    var aceptaNotaVenta by remember(empresaActual) { mutableStateOf(true) }
+    var aceptaBoleta by remember(empresaActual) { mutableStateOf(true) }
+    var aceptaFactura by remember(empresaActual) { mutableStateOf(true) }
+
+    // 🖨️ Formato de Ticketera POS
+    var formatoTicketera by remember(empresaActual) { mutableStateOf("80 mm (Térmica Estándar)") }
+    val opcionesTicketera = listOf("58 mm (Móvil / Bluetooth)", "80 mm (Térmica Estándar)")
 
     WiMain(modifier = modifier) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            // 🔽 Selector de Empresa activa a configurar (WiSelect)
+            Text(
+                text = "Empresa a Configurar",
+                style = WiText.tiny,
+                color = WiCss.tx3,
+                fontWeight = FontWeight.Bold
+            )
+            WiSelect(
+                selectedOption = empresaActual.nombreComercial,
+                options = opcionesEmpresas,
+                onOptionSelected = { nombreSeleccionado ->
+                    val encontrada = empresas.firstOrNull { it.nombreComercial == nombreSeleccionado }
+                    if (encontrada != null) {
+                        onSeleccionarEmpresaParaAjustes(encontrada)
+                    }
+                },
+                label = "Seleccionar empresa",
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Rounded.Home,
@@ -97,13 +138,13 @@ fun AjustesEmpresaTab(
                 Spacer(Modifier.width(8.dp))
                 Column {
                     Text(
-                        text = "Ajustes de ${empresa.nombreComercial}",
+                        text = "Ajustes de ${empresaActual.nombreComercial}",
                         style = WiText.h4,
                         color = WiCss.tx,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "RUC: ${empresa.ruc} • ${empresa.razonSocial}",
+                        text = "RUC: ${empresaActual.ruc} • ${empresaActual.razonSocial}",
                         style = WiText.small,
                         color = WiCss.tx3
                     )
@@ -137,12 +178,70 @@ fun AjustesEmpresaTab(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Text(
-                text = "Configuración Facturación y SOL",
-                style = WiText.h4,
-                color = WiCss.tx,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 8.dp)
+            // 📑 Sección Comprobantes & Facturación (Switches Apple Pro)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Rounded.Info,
+                    contentDescription = null,
+                    tint = WiCss.success,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "Comprobantes de Venta Permitidos",
+                    style = WiText.h4,
+                    color = WiCss.tx,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            WiSwitch(
+                checked = aceptaNotaVenta,
+                onCheckedChange = { aceptaNotaVenta = it },
+                label = "Nota de Venta (Comprobante Interno)",
+                sublabel = "Serie predeterminada: NV01 • Emisión sin envío SUNAT",
+                activeTrackColor = WiCss.success
+            )
+
+            WiSwitch(
+                checked = aceptaBoleta,
+                onCheckedChange = { aceptaBoleta = it },
+                label = "Boleta de Venta Electrónica",
+                sublabel = "Serie predeterminada: B001 • Envío directo a SUNAT",
+                activeTrackColor = WiCss.success
+            )
+
+            WiSwitch(
+                checked = aceptaFactura,
+                onCheckedChange = { aceptaFactura = it },
+                label = "Factura Electrónica RUC",
+                sublabel = "Serie predeterminada: F001 • Emisión obligatoria con RUC",
+                activeTrackColor = WiCss.mco
+            )
+
+            // 🖨️ Sección Ticketera POS
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Rounded.Share,
+                    contentDescription = null,
+                    tint = WiCss.warning,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "Configuración de Impresora & Ticketera",
+                    style = WiText.h4,
+                    color = WiCss.tx,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            WiSelect(
+                selectedOption = formatoTicketera,
+                options = opcionesTicketera,
+                onOptionSelected = { formatoTicketera = it },
+                label = "Formato de Papel Térmico POS",
+                modifier = Modifier.fillMaxWidth()
             )
 
             WiField(
@@ -173,17 +272,21 @@ fun AjustesEmpresaTab(
             )
 
             WiButton(
-                text = if (isLoading) "Guardando Cambios..." else "Guardar Ajustes",
+                text = if (isLoading) "Guardando Cambios..." else "Guardar Ajustes y Facturación",
                 onClick = {
                     onGuardarAjustes(
-                        empresa,
+                        empresaActual,
                         nombreComercial,
                         direccion,
                         telefono,
                         moneda,
                         ubigeo,
                         pinSol,
-                        logoUrl
+                        logoUrl,
+                        aceptaNotaVenta,
+                        aceptaBoleta,
+                        aceptaFactura,
+                        formatoTicketera
                     )
                 },
                 loading = isLoading,

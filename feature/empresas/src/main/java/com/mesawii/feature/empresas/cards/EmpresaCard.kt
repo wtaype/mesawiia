@@ -14,10 +14,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,23 +34,28 @@ import com.mesawii.core.kidev.GoldPill
 import com.mesawii.feature.empresas.data.EmpresaModelo
 
 /**
- * 🃏 EmpresaCard.kt — Tarjeta visual de empresa registrada con fondo WiCss.wb y borde Glass (WiCss.glassBrd).
+ * 🃏 EmpresaCard.kt — Tarjeta visual pro de empresa alineada con `empresa.esEmpresaActiva` y acciones de Editar/Eliminar.
  */
 @Composable
 fun EmpresaCard(
     empresa: EmpresaModelo,
     esActiva: Boolean = false,
     onSeleccionar: () -> Unit = {},
+    onEditar: () -> Unit = {},
+    onEliminar: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val direccionTexto = empresa.direccion ?: ""
+    val estaHabilitada = empresa.esEmpresaActiva
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(WiCss.wb)
-            .border(1.dp, WiCss.glassBrd, RoundedCornerShape(16.dp))
+            .background(if (estaHabilitada) WiCss.wb else WiCss.wb.copy(alpha = 0.6f))
+            .border(1.dp, if (esActiva) WiCss.mco else WiCss.glassBrd, RoundedCornerShape(16.dp))
             .clickable { onSeleccionar() }
-            .padding(16.dp)
+            .padding(14.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -58,24 +66,62 @@ fun EmpresaCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                     Icon(
                         imageVector = Icons.Rounded.Home,
                         contentDescription = null,
-                        tint = WiCss.mco,
+                        tint = if (esActiva) WiCss.mco else WiCss.tx2,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = empresa.nombreComercial.ifBlank { "Mi Empresa" },
-                        style = WiText.h4,
-                        color = WiCss.tx,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Column {
+                        Text(
+                            text = empresa.nombreComercial.ifBlank { "Mi Empresa" },
+                            style = WiText.h4,
+                            color = WiCss.tx,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (!estaHabilitada) {
+                            Text(
+                                text = "DESACTIVADA",
+                                style = WiText.tiny,
+                                color = WiCss.error,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
 
-                if (esActiva) {
-                    GoldPill("ACTIVA")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (esActiva) {
+                        GoldPill("ACTIVA")
+                    }
+
+                    // ✏️ Editar
+                    IconButton(
+                        onClick = onEditar,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Edit,
+                            contentDescription = "Editar Empresa",
+                            tint = WiCss.mco,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    // 🗑️ Eliminar
+                    IconButton(
+                        onClick = onEliminar,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Delete,
+                            contentDescription = "Eliminar Empresa",
+                            tint = WiCss.error.copy(alpha = 0.8f),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
 
@@ -96,7 +142,7 @@ fun EmpresaCard(
                 }
             }
 
-            if (empresa.direccion.isNotBlank()) {
+            if (direccionTexto.isNotBlank()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Rounded.Place,
@@ -106,7 +152,7 @@ fun EmpresaCard(
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
-                        text = empresa.direccion,
+                        text = direccionTexto,
                         style = WiText.tiny,
                         color = WiCss.tx3
                     )

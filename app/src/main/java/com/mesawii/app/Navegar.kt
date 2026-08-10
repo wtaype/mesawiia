@@ -1,8 +1,10 @@
 package com.mesawii.app
 
 import androidx.compose.runtime.Composable
+import com.mesawii.core.kicss.WiTemaColors
 import com.mesawii.feature.auth.AuthPantalla
 import com.mesawii.feature.bienvenida.BienvenidaScreen
+import com.mesawii.feature.cuenta.CuentaPantalla
 import com.mesawii.feature.empresas.EmpresaPantalla
 import com.mesawii.feature.lab.LabPantalla
 
@@ -11,7 +13,10 @@ import com.mesawii.feature.lab.LabPantalla
  * Conmuta entre módulos feature sin sobrecarga de memoria ni reflexión.
  */
 @Composable
-fun Navegar(rutasState: RutasState) {
+fun Navegar(
+    rutasState: RutasState,
+    onTemaCambiado: (WiTemaColors) -> Unit = {}
+) {
     when (rutasState.rutaActual) {
         "bienvenida" -> {
             BienvenidaScreen(
@@ -36,6 +41,18 @@ fun Navegar(rutasState: RutasState) {
                 onCambiarTab = { nuevoIndex ->
                     rutasState.seleccionarTab(nuevoIndex)
                 }
+            )
+        }
+        "cuenta" -> {
+            CuentaPantalla(
+                tabActivaIndex = rutasState.tabActivaIndex,
+                onCambiarTab = { nuevoIndex ->
+                    rutasState.seleccionarTab(nuevoIndex)
+                },
+                onCerrarSesion = {
+                    rutasState.navegarA("auth")
+                },
+                onTemaCambiado = onTemaCambiado
             )
         }
         "lab" -> {

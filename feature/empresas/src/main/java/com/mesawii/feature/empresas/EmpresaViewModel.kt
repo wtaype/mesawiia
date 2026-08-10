@@ -16,9 +16,11 @@ import kotlinx.coroutines.launch
 
 data class EmpresaUiState(
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val isBuscandoSunat: Boolean = false,
     val empresas: List<EmpresaModelo> = emptyList(),
     val empresaActiva: EmpresaModelo? = null,
+    val empresaAEditar: EmpresaModelo? = null,
     val datosSunat: SunatRucResult? = null,
     val error: String? = null,
     val exitoMensaje: String? = null
@@ -46,11 +48,15 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         return store.get("wiToken")
     }
 
-    fun cargarEmpresas() {
+    fun cargarEmpresas(isRefreshManual: Boolean = false) {
         val smileId = obtenerSmileIdActivo()
         if (smileId.isBlank()) return
 
-        _uiState.value = _uiState.value.copy(isLoading = true)
+        if (isRefreshManual) {
+            _uiState.value = _uiState.value.copy(isRefreshing = true)
+        } else {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+        }
 
         viewModelScope.launch {
             val res = EmpresasApi.obtenerEmpresasPorSmile(smileId)
@@ -65,14 +71,16 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
 
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
+                        isRefreshing = false,
                         empresas = lista,
-                        empresaActiva = activa
+                        empresaActiva = activa,
+                        exitoMensaje = if (isRefreshManual) "¡Lista de empresas actualizada!" else _uiState.value.exitoMensaje
                     )
                 },
                 onFailure = { err ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = err.localizedMessage ?: "Error al cargar las empresas registradas"
+                        isRefreshing = false
                     )
                 }
             )
@@ -107,6 +115,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         ubigeo: String? = null,
         pinSol: String? = null,
         logoUrl: String? = null,
+        activo: Boolean = true,
         onExito: () -> Unit
     ) {
         val smileId = obtenerSmileIdActivo()
@@ -119,7 +128,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
 
         viewModelScope.launch {
             val nueva = EmpresaModelo(
-                id = null, // 📌 Dejar nulo para que Postgres ejecute gen_random_uuid()
+                id = null,
                 smileId = smileId,
                 ruc = ruc.trim(),
                 razonSocial = razonSocial.trim(),
@@ -127,15 +136,19 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                 direccion = direccion.trim(),
                 telefono = telefono.trim(),
                 ubigeo = ubigeo?.trim(),
-                logo = logoUrl?.trim()
+                logo = logoUrl?.trim(),
+                activo = activo,
+                estado = if (activo) "activo" else "inactivo"
             )
 
             val res = EmpresasApi.crearEmpresa(nueva)
             res.fold(
                 onSuccess = { creada ->
                     cacheEmpresa.guardarEmpresaActiva(creada)
+                    val listaActualizada = _uiState.value.empresas + creada
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
+                        empresas = listaActualizada,
                         empresaActiva = creada,
                         exitoMensaje = "¡Empresa '${creada.nombreComercial}' registrada con éxito!"
                     )
@@ -143,16 +156,86 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                     onExito()
                 },
                 onFailure = { err ->
-                    val msgLimpio = when {
-                        err.message?.contains("violates row-level security policy", ignoreCase = true) == true ->
-                            "Error de permisos RLS en Supabase: asegúrate de haber ejecutado smiles-tabla.txt y empresa-tabla.txt en Supabase"
-                        err.message?.contains("invalid input syntax for type uuid", ignoreCase = true) == true ->
-                            "Identificador de usuario no es un UUID válido. Inicia sesión de nuevo."
-                        else -> err.localizedMessage ?: "Error al registrar la empresa en Supabase"
-                    }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = msgLimpio
+                        error = err.localizedMessage ?: "Error al registrar la empresa en Supabase"
+                    )
+                }
+            )
+        }
+    }
+
+    fun prepararEdicion(empresa: EmpresaModelo) {
+        _uiState.value = _uiState.value.copy(empresaAEditar = empresa)
+    }
+
+    fun cancelarEdicion() {
+        _uiState.value = _uiState.value.copy(empresaAEditar = null)
+    }
+
+    fun guardarEdicion(empresa: EmpresaModelo, onExito: () -> Unit) {
+        _uiState.value = _uiState.value.copy(isLoading = true)
+
+        viewModelScope.launch {
+            val res = EmpresasApi.actualizarEmpresa(empresa)
+            res.fold(
+                onSuccess = { actualizada ->
+                    val listaActualizada = _uiState.value.empresas.map {
+                        if (it.id == actualizada.id) actualizada else it
+                    }
+                    val activaActualizada = if (_uiState.value.empresaActiva?.id == actualizada.id) actualizada else _uiState.value.empresaActiva
+
+                    if (activaActualizada != null) {
+                        cacheEmpresa.guardarEmpresaActiva(activaActualizada)
+                    }
+
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        empresas = listaActualizada,
+                        empresaActiva = activaActualizada,
+                        empresaAEditar = null,
+                        exitoMensaje = "¡Empresa '${actualizada.nombreComercial}' actualizada!"
+                    )
+                    cargarEmpresas()
+                    onExito()
+                },
+                onFailure = { err ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = err.localizedMessage ?: "Error al actualizar la empresa"
+                    )
+                }
+            )
+        }
+    }
+
+    fun eliminarEmpresa(empresa: EmpresaModelo) {
+        val id = empresa.id ?: return
+        _uiState.value = _uiState.value.copy(isLoading = true)
+
+        viewModelScope.launch {
+            val res = EmpresasApi.eliminarEmpresa(id)
+            res.fold(
+                onSuccess = {
+                    val listaFiltrada = _uiState.value.empresas.filter { it.id != id }
+                    val nuevaActiva = if (_uiState.value.empresaActiva?.id == id) listaFiltrada.firstOrNull() else _uiState.value.empresaActiva
+
+                    if (nuevaActiva != null) {
+                        cacheEmpresa.guardarEmpresaActiva(nuevaActiva)
+                    }
+
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        empresas = listaFiltrada,
+                        empresaActiva = nuevaActiva,
+                        exitoMensaje = "Empresa '${empresa.nombreComercial}' eliminada correctamente"
+                    )
+                    cargarEmpresas()
+                },
+                onFailure = { err ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = err.localizedMessage ?: "Error al eliminar empresa"
                     )
                 }
             )
@@ -168,6 +251,10 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         ubigeo: String?,
         pinSol: String?,
         logoUrl: String?,
+        aceptaNotaVenta: Boolean,
+        aceptaBoleta: Boolean,
+        aceptaFactura: Boolean,
+        formatoTicketera: String,
         onExito: () -> Unit
     ) {
         _uiState.value = _uiState.value.copy(isLoading = true)
@@ -185,10 +272,14 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
             res.fold(
                 onSuccess = { ok ->
                     cacheEmpresa.guardarEmpresaActiva(ok)
+                    val listaActualizada = _uiState.value.empresas.map {
+                        if (it.id == ok.id) ok else it
+                    }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
+                        empresas = listaActualizada,
                         empresaActiva = ok,
-                        exitoMensaje = "¡Ajustes de la empresa actualizados!"
+                        exitoMensaje = "¡Ajustes de facturación de '${ok.nombreComercial}' guardados!"
                     )
                     cargarEmpresas()
                     onExito()
@@ -205,7 +296,10 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
 
     fun seleccionarEmpresa(empresa: EmpresaModelo) {
         cacheEmpresa.guardarEmpresaActiva(empresa)
-        _uiState.value = _uiState.value.copy(empresaActiva = empresa)
+        _uiState.value = _uiState.value.copy(
+            empresaActiva = empresa,
+            exitoMensaje = "Empresa '${empresa.nombreComercial}' seleccionada como activa"
+        )
     }
 
     fun limpiarMensajes() {

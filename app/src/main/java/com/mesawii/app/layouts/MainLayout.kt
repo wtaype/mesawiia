@@ -85,8 +85,9 @@ fun MainLayout(
                                     }
                                 },
                                 onClickAvatar = {
-                                    // Reserva para navegación a cuenta/perfil
+                                    rutasState.navegarA("cuenta")
                                 }
+
                             )
                         }
 
