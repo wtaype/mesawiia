@@ -8,11 +8,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mesawii.app.Rutas
@@ -24,12 +29,13 @@ import com.mesawii.core.kicss.WiCss
 import kotlinx.coroutines.launch
 
 /**
- * 🏰 MainLayout.kt — Contenedor maestro con Header y Pestañas 100% Ancho (0 Radius, fondo WiCss.wb unificado con StatusBar).
+ * 🏰 Principal.kt — Contenedor maestro con HorizontalPager sincrónico a 60fps de respuesta instantánea.
+ * Pasa pageIndex a content() para que cada página se renderice de forma nativa lado a lado sin delay.
  */
 @Composable
-fun MainLayout(
+fun Principal(
     rutasState: RutasState,
-    content: @Composable () -> Unit
+    content: @Composable (pageIndex: Int) -> Unit
 ) {
     val meta = Rutas.getMeta(rutasState.rutaActual)
     val scope = rememberCoroutineScope()
@@ -43,7 +49,7 @@ fun MainLayout(
                 .background(WiCss.bg)
                 .statusBarsPadding()
         ) {
-            content()
+            content(0)
         }
     } else {
         // 🏰 ModalNavigationDrawer Flotante Overlay
@@ -66,7 +72,34 @@ fun MainLayout(
                     .background(WiCss.bg)
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    // 1. Bloque Superior 100% Ancho (Header + Sub-pestañas unificados en fondo WiCss.wb plano 0 Radius)
+                    val tabCount = meta.tabs.size
+                    val pagerState = if (tabCount > 0) {
+                        rememberPagerState(
+                            initialPage = rutasState.tabActivaIndex.coerceIn(0, tabCount - 1),
+                            pageCount = { tabCount }
+                        )
+                    } else null
+
+                    // Sincronización 1: Gesto Swipe del Usuario en tiempo real -> Actualizar tabActivaIndex mediante targetPage (Cero Lag)
+                    if (pagerState != null) {
+                        LaunchedEffect(pagerState) {
+                            snapshotFlow { pagerState.targetPage }.collect { target ->
+                                if (target != rutasState.tabActivaIndex) {
+                                    rutasState.seleccionarTab(target)
+                                }
+                            }
+                        }
+
+                        // Sincronización 2: Cambio externo de ruta -> Pager Animado
+                        LaunchedEffect(rutasState.tabActivaIndex, rutasState.rutaActual) {
+                            val target = rutasState.tabActivaIndex.coerceIn(0, tabCount - 1)
+                            if (pagerState.currentPage != target && !pagerState.isScrollInProgress) {
+                                pagerState.animateScrollToPage(target)
+                            }
+                        }
+                    }
+
+                    // 1. Bloque Superior 100% Ancho (Header + Sub-pestañas)
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -87,23 +120,25 @@ fun MainLayout(
                                 onClickAvatar = {
                                     rutasState.navegarA("cuenta")
                                 }
-
                             )
                         }
 
-                        // Sub-pestañas 100% Ancho pegadas al borde inferior exacto de WiCss.wb
+                        // Sub-pestañas 100% Ancho
                         if (meta.tabs.isNotEmpty()) {
                             Tabs(
                                 tabsList = meta.tabs,
                                 tabActivaIndex = rutasState.tabActivaIndex,
                                 onSeleccionarTab = { index ->
                                     rutasState.seleccionarTab(index)
+                                    pagerState?.let { ps ->
+                                        scope.launch { ps.animateScrollToPage(index) }
+                                    }
                                 }
                             )
                         }
                     }
 
-                    // 2. Contenido Central con padding reactivo desde RutasState/Layout
+                    // 2. Contenido Central con HorizontalPager Sincrónico NATIVO por página
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -113,9 +148,18 @@ fun MainLayout(
                             ),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // VISTA CENTRAL
                         Box(modifier = Modifier.weight(1f)) {
-                            content()
+                            if (meta.tabs.isNotEmpty() && pagerState != null) {
+                                HorizontalPager(
+                                    state = pagerState,
+                                    verticalAlignment = Alignment.Top,
+                                    modifier = Modifier.fillMaxSize()
+                                ) { page ->
+                                    content(page)
+                                }
+                            } else {
+                                content(0)
+                            }
                         }
                     }
                 }

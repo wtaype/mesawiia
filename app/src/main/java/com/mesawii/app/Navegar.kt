@@ -10,11 +10,12 @@ import com.mesawii.feature.lab.LabPantalla
 
 /**
  * 🧭 Navegar.kt — Enrutador Composable Sincrónico Ultra-Rápido (< 0.1ms).
- * Conmuta entre módulos feature sin sobrecarga de memoria ni reflexión.
+ * Conmuta entre módulos feature aceptando tabActivaIndex dinámico por página.
  */
 @Composable
 fun Navegar(
     rutasState: RutasState,
+    tabActivaIndex: Int = rutasState.tabActivaIndex,
     onTemaCambiado: (WiTemaColors) -> Unit = {}
 ) {
     when (rutasState.rutaActual) {
@@ -34,7 +35,7 @@ fun Navegar(
         }
         "empresas" -> {
             EmpresaPantalla(
-                tabActivaIndex = rutasState.tabActivaIndex,
+                tabActivaIndex = tabActivaIndex,
                 onEmpresaSeleccionada = {
                     rutasState.navegarA("mesas")
                 },
@@ -45,7 +46,7 @@ fun Navegar(
         }
         "cuenta" -> {
             CuentaPantalla(
-                tabActivaIndex = rutasState.tabActivaIndex,
+                tabActivaIndex = tabActivaIndex,
                 onCambiarTab = { nuevoIndex ->
                     rutasState.seleccionarTab(nuevoIndex)
                 },
@@ -57,7 +58,7 @@ fun Navegar(
         }
         "lab" -> {
             LabPantalla(
-                tabActivaIndex = rutasState.tabActivaIndex,
+                tabActivaIndex = tabActivaIndex,
                 onCambiarTab = { nuevoIndex ->
                     rutasState.seleccionarTab(nuevoIndex)
                 }
@@ -65,7 +66,7 @@ fun Navegar(
         }
         else -> {
             LabPantalla(
-                tabActivaIndex = rutasState.tabActivaIndex,
+                tabActivaIndex = tabActivaIndex,
                 onCambiarTab = { nuevoIndex ->
                     rutasState.seleccionarTab(nuevoIndex)
                 }

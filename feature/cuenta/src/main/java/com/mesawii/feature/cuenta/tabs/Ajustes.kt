@@ -16,8 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
@@ -31,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mesawii.core.kicss.WiCss
-import com.mesawii.core.kicss.WiIcons
 import com.mesawii.core.kicss.WiText
 import com.mesawii.core.kidev.WiButton
 import com.mesawii.core.kidev.WiSwitch
@@ -40,7 +37,7 @@ import com.mesawii.feature.cuenta.CuentaViewModel
 import kotlin.math.roundToInt
 
 @Composable
-fun AjustesTab(
+fun Ajustes(
     uiState: CuentaUiState,
     viewModel: CuentaViewModel
 ) {
@@ -50,7 +47,7 @@ fun AjustesTab(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Mensajes de Exito en Ajustes
+        // Mensajes de Éxito en Ajustes
         if (!uiState.mensajeExitoAjustes.isNullOrBlank()) {
             Box(
                 modifier = Modifier

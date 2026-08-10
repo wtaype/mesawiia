@@ -19,7 +19,6 @@ import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Person
-
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,7 +37,7 @@ import com.mesawii.feature.cuenta.CuentaUiState
 import com.mesawii.feature.cuenta.CuentaViewModel
 
 @Composable
-fun PerfilTab(
+fun Perfil(
     uiState: CuentaUiState,
     viewModel: CuentaViewModel
 ) {
@@ -95,21 +94,21 @@ fun PerfilTab(
                     value = uiState.nombreEdit,
                     onValueChange = { viewModel.onNombreChange(it) },
                     label = "Nombre",
-                    leadingIcon = WiIcons.Person
+                    leadingIcon = Icons.Rounded.Person
                 )
 
                 WiField(
                     value = uiState.apellidosEdit,
                     onValueChange = { viewModel.onApellidosChange(it) },
                     label = "Apellidos",
-                    leadingIcon = WiIcons.Person
+                    leadingIcon = Icons.Rounded.Person
                 )
 
                 WiField(
                     value = uiState.usuarioEdit,
                     onValueChange = { viewModel.onUsuarioChange(it) },
                     label = "Nombre de Usuario (@usuario)",
-                    leadingIcon = WiIcons.Person
+                    leadingIcon = Icons.Rounded.Person
                 )
 
                 WiField(

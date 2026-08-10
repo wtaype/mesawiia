@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import com.mesawii.app.layouts.MainLayout
+import com.mesawii.app.layouts.Principal
 import com.mesawii.core.kicss.WiTemaApp
 import com.mesawii.core.kidev.WiMessengerHost
 import com.mesawii.core.kidev.WiMessengerProvider
@@ -29,14 +29,14 @@ class MainActivity : ComponentActivity() {
             WiTemaApp(themeColors = currentTema) {
                 WiMessengerProvider(messenger = messenger) {
                     WiMessengerHost(messenger = messenger)
-                    MainLayout(rutasState = rutasState) {
+                    Principal(rutasState = rutasState) { pageIndex ->
                         Navegar(
                             rutasState = rutasState,
+                            tabActivaIndex = pageIndex,
                             onTemaCambiado = { nuevoTema ->
                                 mainViewModel.setTema(nuevoTema)
                             }
                         )
-
                     }
                 }
             }

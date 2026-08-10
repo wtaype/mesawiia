@@ -32,7 +32,7 @@ import com.mesawii.feature.cuenta.CuentaUiState
 import com.mesawii.feature.cuenta.CuentaViewModel
 
 @Composable
-fun ContrasenaTab(
+fun Contrasena(
     uiState: CuentaUiState,
     viewModel: CuentaViewModel
 ) {

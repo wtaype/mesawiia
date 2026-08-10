@@ -1,9 +1,8 @@
 package com.mesawii.feature.empresas
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -11,8 +10,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,8 +22,8 @@ import com.mesawii.feature.empresas.tabs.MisEmpresasTab
 import com.mesawii.feature.empresas.tabs.NuevoEmpresaTab
 
 /**
- * 🏢 EmpresaPantalla.kt — Orquestador UI Principal con HorizontalPager 60fps alineado al Top,
- * notificaciones flotantes con messenger.Notificacion(), Pull-to-Refresh y sincronización UI instantánea.
+ * 🏢 EmpresaPantalla.kt — Orquestador UI Principal de Empresas.
+ * Conectado al Pager Sincrónico 60fps de MainLayout.kt (Cero duplicación de Pager).
  */
 @Composable
 fun EmpresaPantalla(
@@ -37,7 +34,6 @@ fun EmpresaPantalla(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val messenger = LocalWiMessenger.current
-    val pagerState = rememberPagerState(initialPage = tabActivaIndex, pageCount = { 3 })
 
     var empresaAEliminar by remember { mutableStateOf<EmpresaModelo?>(null) }
 
@@ -70,29 +66,9 @@ fun EmpresaPantalla(
         onDismiss = { empresaAEliminar = null }
     )
 
-    // 1. Clic en pestaña superior -> Scroll suave del Pager
-    LaunchedEffect(tabActivaIndex) {
-        if (pagerState.currentPage != tabActivaIndex) {
-            pagerState.animateScrollToPage(tabActivaIndex)
-        }
-    }
-
-    // 2. Gesto de Swipe con el dedo -> Sincronización instantánea mediante targetPage (cero lag)
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.targetPage }.collect { page ->
-            if (page != tabActivaIndex) {
-                onCambiarTab(page)
-            }
-        }
-    }
-
-    HorizontalPager(
-        state = pagerState,
-        verticalAlignment = Alignment.Top,
-        modifier = Modifier.fillMaxSize()
-    ) { page ->
+    Box(modifier = Modifier.fillMaxSize()) {
         val paddingModifier = Modifier.padding(vertical = 4.dp)
-        when (page) {
+        when (tabActivaIndex) {
             0 -> MisEmpresasTab(
                 empresas = uiState.empresas,
                 empresaActiva = uiState.empresaActiva,
@@ -175,6 +151,29 @@ fun EmpresaPantalla(
                     )
                 },
                 isLoading = uiState.isLoading,
+                modifier = paddingModifier
+            )
+            else -> MisEmpresasTab(
+                empresas = uiState.empresas,
+                empresaActiva = uiState.empresaActiva,
+                onSeleccionar = { empresa ->
+                    viewModel.seleccionarEmpresa(empresa)
+                },
+                onEditar = { empresa ->
+                    viewModel.prepararEdicion(empresa)
+                    onCambiarTab(1)
+                },
+                onEliminar = { empresa ->
+                    empresaAEliminar = empresa
+                },
+                onRefrescar = {
+                    viewModel.cargarEmpresas(isRefreshManual = true)
+                },
+                isRefreshing = uiState.isRefreshing,
+                onIrANuevo = {
+                    viewModel.cancelarEdicion()
+                    onCambiarTab(1)
+                },
                 modifier = paddingModifier
             )
         }

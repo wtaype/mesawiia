@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,7 +45,7 @@ import com.mesawii.feature.cuenta.CuentaUiState
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun GeneralTab(
+fun General(
     uiState: CuentaUiState,
     onSeleccionarTema: (String) -> Unit,
     onCerrarSesion: () -> Unit

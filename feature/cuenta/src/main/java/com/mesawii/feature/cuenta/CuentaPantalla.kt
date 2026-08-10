@@ -9,10 +9,10 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mesawii.core.kicss.WiTemaColors
 import com.mesawii.core.kidev.WiDialog
-import com.mesawii.feature.cuenta.tabs.AjustesTab
-import com.mesawii.feature.cuenta.tabs.ContrasenaTab
-import com.mesawii.feature.cuenta.tabs.GeneralTab
-import com.mesawii.feature.cuenta.tabs.PerfilTab
+import com.mesawii.feature.cuenta.tabs.Ajustes
+import com.mesawii.feature.cuenta.tabs.Contrasena
+import com.mesawii.feature.cuenta.tabs.General
+import com.mesawii.feature.cuenta.tabs.Perfil
 
 @Composable
 fun CuentaPantalla(
@@ -26,7 +26,7 @@ fun CuentaPantalla(
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (tabActivaIndex) {
-            0 -> GeneralTab(
+            0 -> General(
                 uiState = uiState,
                 onSeleccionarTema = { nombreTema ->
                     viewModel.cambiarTema(nombreTema, onTemaCambiado)
@@ -35,19 +35,19 @@ fun CuentaPantalla(
                     viewModel.cerrarSesion(onCerrarSesion)
                 }
             )
-            1 -> PerfilTab(
+            1 -> Perfil(
                 uiState = uiState,
                 viewModel = viewModel
             )
-            2 -> ContrasenaTab(
+            2 -> Contrasena(
                 uiState = uiState,
                 viewModel = viewModel
             )
-            3 -> AjustesTab(
+            3 -> Ajustes(
                 uiState = uiState,
                 viewModel = viewModel
             )
-            else -> GeneralTab(
+            else -> General(
                 uiState = uiState,
                 onSeleccionarTema = { nombreTema ->
                     viewModel.cambiarTema(nombreTema, onTemaCambiado)

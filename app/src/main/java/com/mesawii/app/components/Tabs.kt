@@ -25,7 +25,7 @@ import com.mesawii.core.kicss.WiText
 
 /**
  * 🧩 Tabs.kt — Barra Enterprise de sub-pestañas 100% Ancho y Plana (0 Margin inferior) con borde Glass (WiCss.glassBrd),
- * íconos compactos de 15dp y espaciado ajustado de 4dp.
+ * íconos compactos de 15dp, respuesta de color ultrarrápida (0ms delay) y borde de 3dp sincronizado a 60fps.
  */
 @Composable
 fun Tabs(
@@ -51,6 +51,7 @@ fun Tabs(
                     val isSelected = index == tabActivaIndex
                     val textColor = if (isSelected) WiCss.mco else WiCss.tx3
                     val iconColor = if (isSelected) WiCss.mco else WiCss.tx3
+                    val indicatorColor = if (isSelected) WiCss.mco else WiCss.wb
 
                     Column(
                         modifier = Modifier
@@ -70,9 +71,9 @@ fun Tabs(
                                     imageVector = vectorIcon,
                                     contentDescription = tab.titulo,
                                     tint = iconColor,
-                                    modifier = Modifier.size(15.dp) // Ícono compacto de 15dp
+                                    modifier = Modifier.size(15.dp)
                                 )
-                                Spacer(Modifier.width(4.dp)) // Espaciado ajustado de 4dp
+                                Spacer(Modifier.width(4.dp))
                             }
 
                             Text(
@@ -88,7 +89,7 @@ fun Tabs(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(3.dp)
-                                .background(if (isSelected) WiCss.mco else WiCss.wb)
+                                .background(indicatorColor)
                         )
                     }
                 }
