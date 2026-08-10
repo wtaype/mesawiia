@@ -2,6 +2,7 @@ package com.mesawii.feature.empresas.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,8 +50,8 @@ import com.mesawii.core.kidev.WiField
 import com.mesawii.feature.empresas.api.SunatRucResult
 
 /**
- * 🏢 FormularioEmpresa.kt — Formulario con placeholders concisos, toggle de Datos Avanzados con icono tres puntos (MoreVert),
- * selección de moneda, URL de Logo, Ubigeo y Clave SOL.
+ * 🏢 FormularioEmpresa.kt — Formulario VIP con borde Glass (WiCss.glassBrd), RUC en 1 sola línea con Consulta SUNAT,
+ * columna única simplificada y toggle de Datos Avanzados.
  */
 @Composable
 fun FormularioEmpresa(
@@ -102,6 +103,7 @@ fun FormularioEmpresa(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(WiCss.wb)
+            .border(1.dp, WiCss.glassBrd, RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
         Column(
@@ -193,12 +195,13 @@ fun FormularioEmpresa(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // ⚙️ Toggle de Datos Avanzados con icono de tres puntos (MoreVert)
+            // ⚙️ Toggle de Datos Avanzados
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
                     .background(WiCss.inp)
+                    .border(1.dp, WiCss.glassBrd.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
                     .clickable { mostrarAvanzados = !mostrarAvanzados }
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -206,7 +209,7 @@ fun FormularioEmpresa(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Rounded.MoreVert, // Icono tres puntos vertical
+                        imageVector = Icons.Rounded.MoreVert,
                         contentDescription = null,
                         tint = WiCss.mco,
                         modifier = Modifier.size(20.dp)

@@ -1,7 +1,20 @@
 package com.mesawii.app
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.mesawii.core.kicss.WiIcons
+
+/**
+ * 🏷️ MetaTab — Estructura de datos para sub-pestañas con título e ícono opcional.
+ */
+data class MetaTab(
+    val titulo: String,
+    val icono: ImageVector? = null
+)
 
 /**
  * 📜 Seo.kt — Single Source of Truth para metadatos y navegación en MesaWii.
@@ -12,7 +25,7 @@ data class MetaRuta(
     val titulo: String,
     val subtitulo: String,
     val icono: ImageVector,
-    val tabs: List<String> = emptyList(),
+    val tabs: List<MetaTab> = emptyList(),
     val requiereLayout: Boolean = true,
     val esNavPrincipal: Boolean = true
 )
@@ -39,8 +52,12 @@ object Seo {
             key = "empresas",
             titulo = "Mis Empresas & Negocios",
             subtitulo = "Gestión de cafeterías y locales activos",
-            icono = WiIcons.Building, // Edificio (Building)
-            tabs = listOf("Mis Empresas", "Crear Nueva", "Ajustes"),
+            icono = WiIcons.Building,
+            tabs = listOf(
+                MetaTab("Mis Empresas", Icons.Rounded.Home),
+                MetaTab("Crear Nueva", Icons.Rounded.Add),
+                MetaTab("Ajustes", Icons.Rounded.Settings)
+            ),
             requiereLayout = true,
             esNavPrincipal = true
         ),
@@ -49,7 +66,11 @@ object Seo {
             titulo = "Ventas y Control de Mesas",
             subtitulo = "Salón en tiempo real · Hawka Cafetería",
             icono = WiIcons.Restaurant,
-            tabs = listOf("Mesas", "Venta Rápida", "Reservas"),
+            tabs = listOf(
+                MetaTab("Mesas", WiIcons.Restaurant),
+                MetaTab("Venta Rápida", WiIcons.PointOfSale),
+                MetaTab("Reservas", WiIcons.Star)
+            ),
             requiereLayout = true,
             esNavPrincipal = true
         ),
@@ -58,7 +79,11 @@ object Seo {
             titulo = "Caja & Flujo de Pago",
             subtitulo = "Resumen de consumo y métodos de cobro",
             icono = WiIcons.PointOfSale,
-            tabs = listOf("Resumen Hoy", "Ventas Ayer", "Arqueo de Caja"),
+            tabs = listOf(
+                MetaTab("Resumen Hoy", WiIcons.PointOfSale),
+                MetaTab("Ventas Ayer", Icons.Rounded.Info),
+                MetaTab("Arqueo de Caja", Icons.Rounded.Settings)
+            ),
             requiereLayout = true,
             esNavPrincipal = true
         ),
@@ -67,7 +92,11 @@ object Seo {
             titulo = "Inventario de Insumos",
             subtitulo = "Control de stock y recetario por dosis",
             icono = WiIcons.Inventory,
-            tabs = listOf("Insumos", "Recetario", "Alertas Stock"),
+            tabs = listOf(
+                MetaTab("Insumos", WiIcons.Inventory),
+                MetaTab("Recetario", Icons.Rounded.Info),
+                MetaTab("Alertas Stock", WiIcons.Star)
+            ),
             requiereLayout = true,
             esNavPrincipal = true
         ),
@@ -76,7 +105,11 @@ object Seo {
             titulo = "Analíticas & Reportes",
             subtitulo = "Dashboard de ventas y métricas del dueño",
             icono = WiIcons.BarChart,
-            tabs = listOf("Dashboard", "Ventas", "Meseros"),
+            tabs = listOf(
+                MetaTab("Dashboard", WiIcons.BarChart),
+                MetaTab("Ventas", WiIcons.PointOfSale),
+                MetaTab("Meseros", Icons.Rounded.Home)
+            ),
             requiereLayout = true,
             esNavPrincipal = true
         )

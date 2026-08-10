@@ -24,7 +24,7 @@ import com.mesawii.core.kicss.WiCss
 import kotlinx.coroutines.launch
 
 /**
- * 🏰 MainLayout.kt — Contenedor maestro con Header 100% Ancho (0 Radius, fondo WiCss.wb unificado con StatusBar).
+ * 🏰 MainLayout.kt — Contenedor maestro con Header y Pestañas 100% Ancho (0 Radius, fondo WiCss.wb unificado con StatusBar).
  */
 @Composable
 fun MainLayout(
@@ -66,24 +66,40 @@ fun MainLayout(
                     .background(WiCss.bg)
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    // 1. Header 100% Ancho (Fondo WiCss.wb unificado con la StatusBar)
-                    Box(
+                    // 1. Bloque Superior 100% Ancho (Header + Sub-pestañas unificados en fondo WiCss.wb plano 0 Radius)
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(WiCss.wb)
-                            .statusBarsPadding()
                     ) {
-                        Header(
-                            meta = meta,
-                            onToggleSidebar = {
-                                scope.launch {
-                                    if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .statusBarsPadding()
+                        ) {
+                            Header(
+                                meta = meta,
+                                onToggleSidebar = {
+                                    scope.launch {
+                                        if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                                    }
+                                },
+                                onClickAvatar = {
+                                    // Reserva para navegación a cuenta/perfil
                                 }
-                            },
-                            onClickAvatar = {
-                                // Reserva para navegación a cuenta/perfil
-                            }
-                        )
+                            )
+                        }
+
+                        // Sub-pestañas 100% Ancho pegadas al borde inferior exacto de WiCss.wb
+                        if (meta.tabs.isNotEmpty()) {
+                            Tabs(
+                                tabsList = meta.tabs,
+                                tabActivaIndex = navegadorState.tabActivaIndex,
+                                onSeleccionarTab = { index ->
+                                    navegadorState.seleccionarTab(index)
+                                }
+                            )
+                        }
                     }
 
                     // 2. Contenido Central con padding reactivo desde NavegadorState/Layout
@@ -96,17 +112,6 @@ fun MainLayout(
                             ),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Sub-pestañas contextuales
-                        if (meta.tabs.isNotEmpty()) {
-                            Tabs(
-                                tabsList = meta.tabs,
-                                tabActivaIndex = navegadorState.tabActivaIndex,
-                                onSeleccionarTab = { index ->
-                                    navegadorState.seleccionarTab(index)
-                                }
-                            )
-                        }
-
                         // VISTA CENTRAL
                         Box(modifier = Modifier.weight(1f)) {
                             content()

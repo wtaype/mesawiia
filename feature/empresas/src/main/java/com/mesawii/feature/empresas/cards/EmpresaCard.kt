@@ -1,6 +1,7 @@
 package com.mesawii.feature.empresas.cards
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,7 +31,7 @@ import com.mesawii.core.kidev.GoldPill
 import com.mesawii.feature.empresas.data.EmpresaModelo
 
 /**
- * 🃏 EmpresaCard.kt — Tarjeta visual de empresa registrada con fondo WiCss.wb (0 Emojis).
+ * 🃏 EmpresaCard.kt — Tarjeta visual de empresa registrada con fondo WiCss.wb y borde Glass (WiCss.glassBrd).
  */
 @Composable
 fun EmpresaCard(
@@ -44,6 +45,7 @@ fun EmpresaCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(WiCss.wb)
+            .border(1.dp, WiCss.glassBrd, RoundedCornerShape(16.dp))
             .clickable { onSeleccionar() }
             .padding(16.dp)
     ) {
