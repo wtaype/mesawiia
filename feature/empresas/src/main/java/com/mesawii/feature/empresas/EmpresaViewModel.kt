@@ -94,6 +94,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         moneda: String,
         ubigeo: String? = null,
         pinSol: String? = null,
+        logoUrl: String? = null,
         onExito: () -> Unit
     ) {
         val smileJson = store.getSmileJson()
@@ -115,7 +116,8 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                 telefono = telefono.trim(),
                 moneda = moneda,
                 ubigeo = ubigeo?.trim(),
-                pinSol = pinSol?.trim()
+                pinSol = pinSol?.trim(),
+                logoUrl = logoUrl?.trim()
             )
 
             val res = EmpresasApi.crearEmpresa(nueva)
@@ -148,6 +150,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         moneda: String,
         ubigeo: String?,
         pinSol: String?,
+        logoUrl: String?,
         onExito: () -> Unit
     ) {
         _uiState.value = _uiState.value.copy(isLoading = true)
@@ -159,7 +162,8 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                 telefono = telefono.trim(),
                 moneda = moneda,
                 ubigeo = ubigeo?.trim(),
-                pinSol = pinSol?.trim()
+                pinSol = pinSol?.trim(),
+                logoUrl = logoUrl?.trim()
             )
 
             val res = EmpresasApi.actualizarEmpresa(actualizada)

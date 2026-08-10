@@ -21,9 +21,11 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,8 +49,8 @@ import com.mesawii.core.kidev.WiField
 import com.mesawii.feature.empresas.api.SunatRucResult
 
 /**
- * 🏢 FormularioEmpresa.kt — Formulario VIP con fondo WiCss.wb, RUC en 1 sola línea con Consulta SUNAT,
- * columna única simplificada y toggle de Datos Avanzados.
+ * 🏢 FormularioEmpresa.kt — Formulario con placeholders concisos, toggle de Datos Avanzados con icono tres puntos (MoreVert),
+ * selección de moneda, URL de Logo, Ubigeo y Clave SOL.
  */
 @Composable
 fun FormularioEmpresa(
@@ -60,7 +62,8 @@ fun FormularioEmpresa(
         telefono: String,
         moneda: String,
         ubigeo: String?,
-        pinSol: String?
+        pinSol: String?,
+        logoUrl: String?
     ) -> Unit,
     onConsultarSunat: (ruc: String, onExito: (SunatRucResult) -> Unit) -> Unit = { _, _ -> },
     isLoading: Boolean = false,
@@ -75,6 +78,7 @@ fun FormularioEmpresa(
     var moneda by remember { mutableStateOf("PEN") }
     var ubigeo by remember { mutableStateOf("") }
     var pinSol by remember { mutableStateOf("") }
+    var logoUrl by remember { mutableStateOf("") }
 
     var mostrarAvanzados by remember { mutableStateOf(false) }
 
@@ -111,7 +115,7 @@ fun FormularioEmpresa(
                 fontWeight = FontWeight.Bold
             )
 
-            // 1. Línea 1: RUC (11 dígitos) en una sola línea con botón de búsqueda SUNAT
+            // 1. RUC (11 dígitos) con consulta SUNAT
             WiField(
                 value = ruc,
                 onValueChange = { input ->
@@ -122,7 +126,7 @@ fun FormularioEmpresa(
                         }
                     }
                 },
-                label = "RUC (11 dígitos - Consulta SUNAT)",
+                label = "RUC (11 dígitos)",
                 leadingIcon = Icons.Rounded.Info,
                 trailingIcon = {
                     if (isBuscandoSunat) {
@@ -144,11 +148,11 @@ fun FormularioEmpresa(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 isSuccess = isRucOk,
                 isError = ruc.isNotBlank() && !isRucOk,
-                errorMessage = if (ruc.isNotBlank() && !isRucOk) "El RUC debe contener exactamente 11 números" else null,
+                errorMessage = if (ruc.isNotBlank() && !isRucOk) "El RUC debe tener 11 dígitos" else null,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 2. Línea 2: Razón Social
+            // 2. Razón Social
             WiField(
                 value = razonSocial,
                 onValueChange = { razonSocial = it },
@@ -158,38 +162,38 @@ fun FormularioEmpresa(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 3. Línea 3: Nombre Comercial
+            // 3. Nombre Comercial
             WiField(
                 value = nombreComercial,
                 onValueChange = { nombreComercial = it },
-                label = "Nombre Comercial de la Empresa / Local",
+                label = "Nombre Comercial",
                 leadingIcon = Icons.Rounded.Person,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                 isSuccess = isNombreOk,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 4. Línea 4: Dirección Comercial / Local
+            // 4. Dirección Fiscal / Local
             WiField(
                 value = direccion,
                 onValueChange = { direccion = it },
-                label = "Dirección Comercial / Fiscal",
+                label = "Dirección Fiscal / Local",
                 leadingIcon = Icons.Rounded.Home,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 5. Línea 5: Teléfono de Contacto
+            // 5. Teléfono de Contacto
             WiField(
                 value = telefono,
                 onValueChange = { telefono = it },
-                label = "Teléfono o Celular de Contacto",
+                label = "Teléfono de Contacto",
                 leadingIcon = Icons.Rounded.Call,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // ⚙️ Toggle de Datos Avanzados (Ubigeo, PIN, Moneda)
+            // ⚙️ Toggle de Datos Avanzados con icono de tres puntos (MoreVert)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -202,14 +206,14 @@ fun FormularioEmpresa(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Rounded.Lock,
+                        imageVector = Icons.Rounded.MoreVert, // Icono tres puntos vertical
                         contentDescription = null,
                         tint = WiCss.mco,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "Datos Avanzados / Facturación electrónica (Opcional)",
+                        text = "Datos Avanzados (Opcional)",
                         style = WiText.small,
                         color = WiCss.tx2,
                         fontWeight = FontWeight.Medium
@@ -229,6 +233,63 @@ fun FormularioEmpresa(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    // Selección de Moneda (PEN vs USD)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Moneda Principal:",
+                            style = WiText.small,
+                            color = WiCss.tx2,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (moneda == "PEN") WiCss.mco else WiCss.inp)
+                                    .clickable { moneda = "PEN" }
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = "PEN (S/)",
+                                    style = WiText.tiny,
+                                    color = if (moneda == "PEN") WiCss.tx else WiCss.tx3,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (moneda == "USD") WiCss.mco else WiCss.inp)
+                                    .clickable { moneda = "USD" }
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = "USD ($)",
+                                    style = WiText.tiny,
+                                    color = if (moneda == "USD") WiCss.tx else WiCss.tx3,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
+                    // Logo URL
+                    WiField(
+                        value = logoUrl,
+                        onValueChange = { logoUrl = it },
+                        label = "URL del Logo de la Empresa",
+                        leadingIcon = Icons.Rounded.Share,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    // Ubigeo Fiscal
                     WiField(
                         value = ubigeo,
                         onValueChange = { ubigeo = it },
@@ -238,6 +299,7 @@ fun FormularioEmpresa(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    // PIN / Clave SOL
                     WiField(
                         value = pinSol,
                         onValueChange = { pinSol = it },
@@ -251,10 +313,10 @@ fun FormularioEmpresa(
 
             // Botón Crear Empresa
             WiButton(
-                text = if (isLoading) "Guardando Empresa..." else "Registrar Empresa y Continuar",
+                text = if (isLoading) "Guardando..." else "Registrar Empresa y Continuar",
                 onClick = {
                     if (isFormularioValido) {
-                        onCrear(nombreComercial, ruc, razonSocial, direccion, telefono, moneda, ubigeo, pinSol)
+                        onCrear(nombreComercial, ruc, razonSocial, direccion, telefono, moneda, ubigeo, pinSol, logoUrl)
                     }
                 },
                 loading = isLoading,

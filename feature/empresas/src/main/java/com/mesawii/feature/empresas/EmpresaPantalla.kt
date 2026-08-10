@@ -38,7 +38,7 @@ fun EmpresaPantalla(
         )
 
         1 -> NuevoEmpresaTab(
-            onCrear = { nombreComercial, ruc, razonSocial, direccion, telefono, moneda, ubigeo, pinSol ->
+            onCrear = { nombreComercial, ruc, razonSocial, direccion, telefono, moneda, ubigeo, pinSol, logoUrl ->
                 viewModel.crearEmpresa(
                     nombreComercial = nombreComercial,
                     ruc = ruc,
@@ -48,6 +48,7 @@ fun EmpresaPantalla(
                     moneda = moneda,
                     ubigeo = ubigeo,
                     pinSol = pinSol,
+                    logoUrl = logoUrl,
                     onExito = {
                         onCambiarTab(0)
                         onEmpresaSeleccionada()
@@ -64,7 +65,7 @@ fun EmpresaPantalla(
 
         2 -> AjustesEmpresaTab(
             empresa = uiState.empresaActiva,
-            onGuardarAjustes = { empresa, nombre, direccion, telefono, moneda, ubigeo, pinSol ->
+            onGuardarAjustes = { empresa, nombre, direccion, telefono, moneda, ubigeo, pinSol, logoUrl ->
                 viewModel.guardarAjustesEmpresa(
                     empresa = empresa,
                     nombreComercial = nombre,
@@ -73,6 +74,7 @@ fun EmpresaPantalla(
                     moneda = moneda,
                     ubigeo = ubigeo,
                     pinSol = pinSol,
+                    logoUrl = logoUrl,
                     onExito = {
                         onCambiarTab(0)
                         onEmpresaSeleccionada()

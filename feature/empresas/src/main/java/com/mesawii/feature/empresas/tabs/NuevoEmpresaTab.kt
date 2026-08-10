@@ -20,7 +20,8 @@ fun NuevoEmpresaTab(
         telefono: String,
         moneda: String,
         ubigeo: String?,
-        pinSol: String?
+        pinSol: String?,
+        logoUrl: String?
     ) -> Unit,
     onConsultarSunat: (ruc: String, onExito: (SunatRucResult) -> Unit) -> Unit,
     isLoading: Boolean = false,

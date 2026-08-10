@@ -1,6 +1,7 @@
 package com.mesawii.feature.empresas.tabs
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,10 +18,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Place
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,7 +55,8 @@ fun AjustesEmpresaTab(
         telefono: String,
         moneda: String,
         ubigeo: String?,
-        pinSol: String?
+        pinSol: String?,
+        logoUrl: String?
     ) -> Unit,
     isLoading: Boolean = false,
     modifier: Modifier = Modifier
@@ -79,6 +81,7 @@ fun AjustesEmpresaTab(
     var moneda by remember(empresa) { mutableStateOf(empresa.moneda) }
     var ubigeo by remember(empresa) { mutableStateOf(empresa.ubigeo ?: "") }
     var pinSol by remember(empresa) { mutableStateOf(empresa.pinSol ?: "") }
+    var logoUrl by remember(empresa) { mutableStateOf(empresa.logoUrl ?: "") }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -131,7 +134,7 @@ fun AjustesEmpresaTab(
                     WiField(
                         value = direccion,
                         onValueChange = { direccion = it },
-                        label = "Dirección Comercial / Local",
+                        label = "Dirección Fiscal / Local",
                         leadingIcon = Icons.Rounded.Home,
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                         modifier = Modifier.fillMaxWidth()
@@ -152,6 +155,15 @@ fun AjustesEmpresaTab(
                         color = WiCss.tx,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(top = 8.dp)
+                    )
+
+                    WiField(
+                        value = logoUrl,
+                        onValueChange = { logoUrl = it },
+                        label = "URL del Logo de la Empresa",
+                        leadingIcon = Icons.Rounded.Share,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     WiField(
@@ -182,7 +194,8 @@ fun AjustesEmpresaTab(
                                 telefono,
                                 moneda,
                                 ubigeo,
-                                pinSol
+                                pinSol,
+                                logoUrl
                             )
                         },
                         loading = isLoading,
