@@ -3,10 +3,12 @@ package com.mesawii.feature.empresas
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.mesawii.core.data.supabase.api.EmpresasApi
-import com.mesawii.core.data.supabase.api.SunatRucResult
-import com.mesawii.core.data.supabase.modelo.Empresa
 import com.mesawii.core.kidev.wiStore
+import com.mesawii.feature.empresas.api.EmpresasApi
+import com.mesawii.feature.empresas.api.SunatApi
+import com.mesawii.feature.empresas.api.SunatRucResult
+import com.mesawii.feature.empresas.data.CacheEmpresa
+import com.mesawii.feature.empresas.data.EmpresaModelo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,8 +17,8 @@ import kotlinx.coroutines.launch
 data class EmpresaUiState(
     val isLoading: Boolean = false,
     val isBuscandoSunat: Boolean = false,
-    val empresas: List<Empresa> = emptyList(),
-    val empresaActiva: Empresa? = null,
+    val empresas: List<EmpresaModelo> = emptyList(),
+    val empresaActiva: EmpresaModelo? = null,
     val datosSunat: SunatRucResult? = null,
     val error: String? = null,
     val exitoMensaje: String? = null
@@ -24,9 +26,12 @@ data class EmpresaUiState(
 
 class EmpresaViewModel(application: Application) : AndroidViewModel(application) {
     private val store = wiStore(application)
+    private val cacheEmpresa = CacheEmpresa.getInstance(application)
 
     private val _uiState = MutableStateFlow(EmpresaUiState())
     val uiState: StateFlow<EmpresaUiState> = _uiState.asStateFlow()
+
+    val nombreEmpresaActivaFlow: StateFlow<String> = cacheEmpresa.empresaActivaNombreFlow
 
     init {
         cargarEmpresas()
@@ -43,10 +48,13 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
             val res = EmpresasApi.obtenerEmpresasPorSmile(smileId)
             res.fold(
                 onSuccess = { lista ->
-                    val activa = lista.firstOrNull()
+                    val activa = lista.firstOrNull { it.nombreComercial == cacheEmpresa.getNombreEmpresaActiva() }
+                        ?: lista.firstOrNull()
+
                     if (activa != null) {
-                        store.save("empresa", activa.nombreComercial)
+                        cacheEmpresa.guardarEmpresaActiva(activa)
                     }
+
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         empresas = lista,
@@ -68,7 +76,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         _uiState.value = _uiState.value.copy(isBuscandoSunat = true)
 
         viewModelScope.launch {
-            val res = EmpresasApi.consultarRucSunat(ruc)
+            val res = SunatApi.consultarRucSunat(ruc)
             _uiState.value = _uiState.value.copy(isBuscandoSunat = false)
             res.onSuccess { data ->
                 _uiState.value = _uiState.value.copy(datosSunat = data)
@@ -98,7 +106,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         _uiState.value = _uiState.value.copy(isLoading = true)
 
         viewModelScope.launch {
-            val nueva = Empresa(
+            val nueva = EmpresaModelo(
                 smileId = smileId,
                 ruc = ruc.trim(),
                 razonSocial = razonSocial.trim(),
@@ -113,7 +121,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
             val res = EmpresasApi.crearEmpresa(nueva)
             res.fold(
                 onSuccess = { creada ->
-                    store.save("empresa", creada.nombreComercial)
+                    cacheEmpresa.guardarEmpresaActiva(creada)
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         empresaActiva = creada,
@@ -132,8 +140,52 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun seleccionarEmpresa(empresa: Empresa) {
-        store.save("empresa", empresa.nombreComercial)
+    fun guardarAjustesEmpresa(
+        empresa: EmpresaModelo,
+        nombreComercial: String,
+        direccion: String,
+        telefono: String,
+        moneda: String,
+        ubigeo: String?,
+        pinSol: String?,
+        onExito: () -> Unit
+    ) {
+        _uiState.value = _uiState.value.copy(isLoading = true)
+
+        viewModelScope.launch {
+            val actualizada = empresa.copy(
+                nombreComercial = nombreComercial.trim(),
+                direccion = direccion.trim(),
+                telefono = telefono.trim(),
+                moneda = moneda,
+                ubigeo = ubigeo?.trim(),
+                pinSol = pinSol?.trim()
+            )
+
+            val res = EmpresasApi.actualizarEmpresa(actualizada)
+            res.fold(
+                onSuccess = { ok ->
+                    cacheEmpresa.guardarEmpresaActiva(ok)
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        empresaActiva = ok,
+                        exitoMensaje = "¡Ajustes de la empresa actualizados!"
+                    )
+                    cargarEmpresas()
+                    onExito()
+                },
+                onFailure = { err ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = err.localizedMessage ?: "Error al actualizar la empresa"
+                    )
+                }
+            )
+        }
+    }
+
+    fun seleccionarEmpresa(empresa: EmpresaModelo) {
+        cacheEmpresa.guardarEmpresaActiva(empresa)
         _uiState.value = _uiState.value.copy(empresaActiva = empresa)
     }
 

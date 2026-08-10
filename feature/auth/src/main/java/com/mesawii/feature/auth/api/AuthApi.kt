@@ -1,7 +1,7 @@
-package com.mesawii.core.data.supabase.api
+package com.mesawii.feature.auth.api
 
 import com.mesawii.core.data.supabase.Cliente
-import com.mesawii.core.data.supabase.modelo.Smile
+import com.mesawii.feature.auth.data.SmileModelo
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -15,7 +15,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
 data class ResultadoAuthGoogle(
-    val smile: Smile? = null,
+    val smile: SmileModelo? = null,
     val esNuevoUsuario: Boolean = false,
     val email: String = "",
     val userId: String = "",
@@ -25,7 +25,7 @@ data class ResultadoAuthGoogle(
 )
 
 /**
- * 🔑 AuthApi.kt — Servicio remoto de Autenticación Supabase Auth + public.smiles.
+ * 🔑 AuthApi.kt — Servicio remoto de Autenticación Supabase Auth + public.smiles exclusivo de feature/auth.
  */
 object AuthApi {
     private val client get() = Cliente.instancia
@@ -78,7 +78,7 @@ object AuthApi {
         usuarioStr: String,
         nombreStr: String,
         apellidosStr: String
-    ): Result<Smile> = withContext(Dispatchers.IO) {
+    ): Result<SmileModelo> = withContext(Dispatchers.IO) {
         try {
             val mail = cleanMail(emailStr)
             val usr = cleanUser(usuarioStr)
@@ -111,7 +111,7 @@ object AuthApi {
             val finalUserId = currentUserId
                 ?: return@withContext Result.failure(Exception("Cuenta creada. Si recibiste un correo de verificación, confírmalo para ingresar."))
 
-            val smile = Smile(
+            val smile = SmileModelo(
                 id = finalUserId,
                 usuario = usr,
                 email = mail,
@@ -131,7 +131,7 @@ object AuthApi {
     suspend fun ingresar(
         emailOrUsername: String,
         passStr: String
-    ): Result<Smile> = withContext(Dispatchers.IO) {
+    ): Result<SmileModelo> = withContext(Dispatchers.IO) {
         try {
             val input = cleanMail(emailOrUsername)
             val emailFinal = if (!input.contains("@")) {
@@ -153,7 +153,7 @@ object AuthApi {
 
             val smile = client.postgrest["smiles"]
                 .select { filter { eq("id", userId) } }
-                .decodeSingle<Smile>()
+                .decodeSingle<SmileModelo>()
 
             Result.success(smile)
         } catch (e: Exception) {
@@ -174,7 +174,6 @@ object AuthApi {
             val userId = currentUser.id
             val emailVal = cleanMail(currentUser.email ?: "")
 
-            // Extraer metadata de Google (Avatar + Nombre + Apellidos)
             val meta = currentUser.userMetadata
             val avatarVal = meta?.get("avatar_url")?.jsonPrimitive?.contentOrNull
                 ?: meta?.get("picture")?.jsonPrimitive?.contentOrNull
@@ -188,11 +187,10 @@ object AuthApi {
 
             val (nombreVal, apellidosVal) = splitName(fullNameVal, givenNameVal, familyNameVal)
 
-            // Consultar si la cuenta ya existe en public.smiles
             val smileExistente = try {
                 client.postgrest["smiles"]
                     .select { filter { eq("id", userId) } }
-                    .decodeSingleOrNull<Smile>()
+                    .decodeSingleOrNull<SmileModelo>()
             } catch (e: Exception) {
                 null
             }
@@ -224,18 +222,17 @@ object AuthApi {
         nombreStr: String,
         apellidosStr: String,
         avatarStr: String
-    ): Result<Smile> = withContext(Dispatchers.IO) {
+    ): Result<SmileModelo> = withContext(Dispatchers.IO) {
         try {
             val usr = cleanUser(usuarioStr)
             val nom = cleanName(nombreStr)
             val ape = cleanName(apellidosStr)
 
-            // Verificar disponibilidad del usuario
             if (existeUsuario(usr)) {
                 return@withContext Result.failure(Exception("El usuario '@$usr' ya está ocupado"))
             }
 
-            val smile = Smile(
+            val smile = SmileModelo(
                 id = userId,
                 usuario = usr,
                 email = email,

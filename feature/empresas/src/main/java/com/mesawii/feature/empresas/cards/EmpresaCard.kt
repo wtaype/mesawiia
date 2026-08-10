@@ -24,17 +24,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.mesawii.core.data.supabase.modelo.Empresa
 import com.mesawii.core.kicss.WiCss
 import com.mesawii.core.kicss.WiText
 import com.mesawii.core.kidev.GoldPill
+import com.mesawii.feature.empresas.data.EmpresaModelo
 
 /**
  * 🃏 EmpresaCard.kt — Tarjeta visual de empresa registrada con fondo WiCss.wb (0 Emojis).
  */
 @Composable
 fun EmpresaCard(
-    empresa: Empresa,
+    empresa: EmpresaModelo,
     esActiva: Boolean = false,
     onSeleccionar: () -> Unit = {},
     modifier: Modifier = Modifier

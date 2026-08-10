@@ -1,18 +1,18 @@
-package com.mesawii.core.data.supabase.modelo
+package com.mesawii.feature.auth.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * 😊 Smile.kt — Dataclass Mapeo 1:1 con la tabla public.smiles en Supabase.
+ * 😊 SmileModelo.kt — Modelo de dominio 1:1 de la entidad Smile (public.smiles Supabase).
  */
 @Serializable
-data class Smile(
+data class SmileModelo(
     val id: String,
     val usuario: String,
     val email: String,
-    val nombre: String,
-    val apellidos: String,
+    val nombre: String = "",
+    val apellidos: String = "",
     val avatar: String? = null,
     val bio: String? = null,
     val estado: String = "activo",

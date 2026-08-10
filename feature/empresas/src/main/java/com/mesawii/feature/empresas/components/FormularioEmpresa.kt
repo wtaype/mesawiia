@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Call
-import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -41,11 +40,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.mesawii.core.data.supabase.api.SunatRucResult
 import com.mesawii.core.kicss.WiCss
 import com.mesawii.core.kicss.WiText
 import com.mesawii.core.kidev.WiButton
 import com.mesawii.core.kidev.WiField
+import com.mesawii.feature.empresas.api.SunatRucResult
 
 /**
  * 🏢 FormularioEmpresa.kt — Formulario VIP con fondo WiCss.wb, RUC en 1 sola línea con Consulta SUNAT,
@@ -149,7 +148,7 @@ fun FormularioEmpresa(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 2. Línea 2: Razón Social (1 Columna completa)
+            // 2. Línea 2: Razón Social
             WiField(
                 value = razonSocial,
                 onValueChange = { razonSocial = it },
@@ -159,7 +158,7 @@ fun FormularioEmpresa(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 3. Línea 3: Nombre Comercial (1 Columna completa)
+            // 3. Línea 3: Nombre Comercial
             WiField(
                 value = nombreComercial,
                 onValueChange = { nombreComercial = it },

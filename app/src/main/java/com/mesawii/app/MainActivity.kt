@@ -45,8 +45,12 @@ class MainActivity : ComponentActivity() {
                         }
                         "empresas" -> {
                             EmpresaPantalla(
+                                tabActivaIndex = navegadorState.tabActivaIndex,
                                 onEmpresaSeleccionada = {
                                     navegadorState.navegarA("mesas")
+                                },
+                                onCambiarTab = { nuevoIndex ->
+                                    navegadorState.seleccionarTab(nuevoIndex)
                                 }
                             )
                         }

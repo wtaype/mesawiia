@@ -40,7 +40,7 @@ object Seo {
             titulo = "Mis Empresas & Negocios",
             subtitulo = "Gestión de cafeterías y locales activos",
             icono = WiIcons.Building, // Edificio (Building)
-            tabs = listOf("Mis Empresas", "Crear Nueva"),
+            tabs = listOf("Mis Empresas", "Crear Nueva", "Ajustes"),
             requiereLayout = true,
             esNavPrincipal = true
         ),

@@ -27,13 +27,13 @@ android {
 dependencies {
     api(project(":core:wii"))
     
-    // Supabase Kotlin SDK
-    implementation(platform("io.github.jan-tennert.supabase:bom:3.0.0"))
-    implementation("io.github.jan-tennert.supabase:auth-kt")
-    implementation("io.github.jan-tennert.supabase:postgrest-kt")
-    implementation("io.github.jan-tennert.supabase:realtime-kt")
+    // Supabase Kotlin SDK expuestos vía 'api' para todos los módulos feature
+    api(platform("io.github.jan-tennert.supabase:bom:3.0.0"))
+    api("io.github.jan-tennert.supabase:auth-kt")
+    api("io.github.jan-tennert.supabase:postgrest-kt")
+    api("io.github.jan-tennert.supabase:realtime-kt")
 
-    // Ktor Engine
-    implementation(libs.ktor.client.android)
-    implementation(libs.kotlinx.serialization.json)
+    // Ktor Engine & Serialization expuestos vía 'api'
+    api(libs.ktor.client.android)
+    api(libs.kotlinx.serialization.json)
 }

@@ -1,6 +1,7 @@
 plugins {
     id("mesawii.android.library")
     alias(libs.plugins.kotlin.compose)
+    kotlin("plugin.serialization") version "2.1.10"
 }
 
 android {

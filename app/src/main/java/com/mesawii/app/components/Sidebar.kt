@@ -20,6 +20,8 @@ import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,10 +34,10 @@ import androidx.compose.ui.unit.dp
 import com.mesawii.app.Rutas
 import com.mesawii.core.kicss.WiCss
 import com.mesawii.core.kicss.WiText
-import com.mesawii.core.kidev.wiStore
+import com.mesawii.feature.empresas.data.CacheEmpresa
 
 /**
- * 🧩 Sidebar.kt — Barra lateral con fondo WiCss.wb y statusBarsPadding() seguro.
+ * 🧩 Sidebar.kt — Barra lateral con fondo WiCss.wb y statusBarsPadding() seguro, suscrita al StateFlow de la empresa activa.
  */
 @Composable
 fun Sidebar(
@@ -44,8 +46,8 @@ fun Sidebar(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val store = remember { wiStore(context) }
-    val nombreEmpresa = remember { store.getEmpresaNombre() }
+    val cacheEmpresa = remember { CacheEmpresa.getInstance(context) }
+    val nombreEmpresa by cacheEmpresa.empresaActivaNombreFlow.collectAsState()
 
     Box(
         modifier = modifier

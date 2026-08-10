@@ -1,13 +1,13 @@
-package com.mesawii.core.data.supabase.modelo
+package com.mesawii.feature.empresas.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * 🏢 Empresa.kt — Dataclass Mapeo 1:1 con la tabla public.empresas en Supabase.
+ * 🏢 EmpresaModelo.kt — Modelo de dominio 1:1 de la entidad Empresa (public.empresas Supabase).
  */
 @Serializable
-data class Empresa(
+data class EmpresaModelo(
     val id: String = "",
     @SerialName("smile_id") val smileId: String = "",
     val ruc: String = "",

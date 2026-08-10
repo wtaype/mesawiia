@@ -3,8 +3,9 @@ package com.mesawii.feature.auth
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.mesawii.core.data.supabase.api.AuthApi
 import com.mesawii.core.kidev.wiStore
+import com.mesawii.feature.auth.api.AuthApi
+import com.mesawii.feature.auth.data.CacheSmile
 import com.mesawii.feature.auth.lib.Serializar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +20,7 @@ data class AuthUiState(
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val store = wiStore(application)
+    private val cacheSmile = CacheSmile.getInstance(application)
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -41,14 +43,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             val res = AuthApi.ingresar(cleanInput, pass)
             res.fold(
                 onSuccess = { smile ->
-                    store.saveSmile(
-                        id = smile.id,
-                        usuario = smile.usuario,
-                        email = smile.email,
-                        nombre = smile.nombre,
-                        apellidos = smile.apellidos,
-                        avatar = smile.avatar ?: ""
-                    )
+                    cacheSmile.guardarSesion(smile)
                     _uiState.value = AuthUiState(isSuccess = true)
                     onExito()
                 },
@@ -80,13 +75,11 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.value = AuthUiState(isLoading = true)
 
         viewModelScope.launch {
-            // Verificar si el correo ya existe
             if (AuthApi.existeEmail(cleanMail)) {
                 _uiState.value = AuthUiState(error = "El correo electrónico ya está registrado. Intenta ingresar.")
                 return@launch
             }
 
-            // Verificar si el usuario ya existe
             if (AuthApi.existeUsuario(cleanUser)) {
                 _uiState.value = AuthUiState(error = "El nombre de usuario '@$cleanUser' ya está ocupado. Elige otro.")
                 return@launch
@@ -101,14 +94,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             )
             res.fold(
                 onSuccess = { smile ->
-                    store.saveSmile(
-                        id = smile.id,
-                        usuario = smile.usuario,
-                        email = smile.email,
-                        nombre = smile.nombre,
-                        apellidos = smile.apellidos,
-                        avatar = smile.avatar ?: ""
-                    )
+                    cacheSmile.guardarSesion(smile)
                     _uiState.value = AuthUiState(isSuccess = true)
                     onExito()
                 },
@@ -132,14 +118,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 onSuccess = { resultado ->
                     val smile = resultado.smile
                     if (!resultado.esNuevoUsuario && smile != null) {
-                        store.saveSmile(
-                            id = smile.id,
-                            usuario = smile.usuario,
-                            email = smile.email,
-                            nombre = smile.nombre,
-                            apellidos = smile.apellidos,
-                            avatar = smile.avatar ?: ""
-                        )
+                        cacheSmile.guardarSesion(smile)
                         _uiState.value = AuthUiState(isSuccess = true)
                         onAuthExitosa()
                     } else {
@@ -178,14 +157,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             )
             res.fold(
                 onSuccess = { smile ->
-                    store.saveSmile(
-                        id = smile.id,
-                        usuario = smile.usuario,
-                        email = smile.email,
-                        nombre = smile.nombre,
-                        apellidos = smile.apellidos,
-                        avatar = smile.avatar ?: ""
-                    )
+                    cacheSmile.guardarSesion(smile)
                     _uiState.value = AuthUiState(isSuccess = true)
                     onAuthExitosa()
                 },
