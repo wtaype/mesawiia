@@ -18,7 +18,7 @@ rootProject.name = "MesaWii"
 include(":app")
 include(":core:wii")
 include(":core:data")
-include(":feature:hola")
+include(":feature:lab")
 include(":feature:bienvenida")
 include(":feature:auth")
 include(":feature:empresas")

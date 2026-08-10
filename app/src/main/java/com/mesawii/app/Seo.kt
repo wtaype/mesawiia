@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.mesawii.core.kicss.WiIcons
@@ -31,6 +32,9 @@ data class MetaRuta(
 )
 
 object Seo {
+    /**
+     * 📌 METADATOS: Define la lista y ORDEN EXACTO de los elementos de navegación en la Sidebar.
+     */
     val METADATOS = mapOf(
         "bienvenida" to MetaRuta(
             key = "bienvenida",
@@ -109,6 +113,19 @@ object Seo {
                 MetaTab("Dashboard", WiIcons.BarChart),
                 MetaTab("Ventas", WiIcons.PointOfSale),
                 MetaTab("Meseros", Icons.Rounded.Home)
+            ),
+            requiereLayout = true,
+            esNavPrincipal = true
+        ),
+        "lab" to MetaRuta(
+            key = "lab",
+            titulo = "Laboratorio & Pruebas",
+            subtitulo = "Verificación de sesión WiSmile y diagnóstico de componentes",
+            icono = WiIcons.Star,
+            tabs = listOf(
+                MetaTab("Lab 1", Icons.Rounded.Lock),
+                MetaTab("Lab 2", Icons.Rounded.Settings),
+                MetaTab("Lab 3", Icons.Rounded.Info)
             ),
             requiereLayout = true,
             esNavPrincipal = true

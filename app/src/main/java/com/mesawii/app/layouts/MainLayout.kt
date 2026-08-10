@@ -15,8 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.mesawii.app.NavegadorState
 import com.mesawii.app.Rutas
+import com.mesawii.app.RutasState
 import com.mesawii.app.components.Header
 import com.mesawii.app.components.Sidebar
 import com.mesawii.app.components.Tabs
@@ -28,10 +28,10 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun MainLayout(
-    navegadorState: NavegadorState,
+    rutasState: RutasState,
     content: @Composable () -> Unit
 ) {
-    val meta = Rutas.getMeta(navegadorState.rutaActual)
+    val meta = Rutas.getMeta(rutasState.rutaActual)
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
@@ -52,9 +52,9 @@ fun MainLayout(
             gesturesEnabled = true,
             drawerContent = {
                 Sidebar(
-                    rutaActiva = navegadorState.rutaActual,
+                    rutaActiva = rutasState.rutaActual,
                     onSeleccionarRuta = { ruta ->
-                        navegadorState.navegarA(ruta)
+                        rutasState.navegarA(ruta)
                         scope.launch { drawerState.close() }
                     }
                 )
@@ -94,21 +94,21 @@ fun MainLayout(
                         if (meta.tabs.isNotEmpty()) {
                             Tabs(
                                 tabsList = meta.tabs,
-                                tabActivaIndex = navegadorState.tabActivaIndex,
+                                tabActivaIndex = rutasState.tabActivaIndex,
                                 onSeleccionarTab = { index ->
-                                    navegadorState.seleccionarTab(index)
+                                    rutasState.seleccionarTab(index)
                                 }
                             )
                         }
                     }
 
-                    // 2. Contenido Central con padding reactivo desde NavegadorState/Layout
+                    // 2. Contenido Central con padding reactivo desde RutasState/Layout
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(
-                                horizontal = navegadorState.paddingHorizontal,
-                                vertical = navegadorState.paddingVertical
+                                horizontal = rutasState.paddingHorizontal,
+                                vertical = rutasState.paddingVertical
                             ),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {

@@ -139,7 +139,7 @@ fun Sidebar(
                         )
                         Spacer(Modifier.width(6.dp))
                         Text(
-                            text = "Online · Hawka Cloud",
+                            text = "MesaWii · Online",
                             style = WiText.tiny,
                             color = WiCss.success,
                             fontWeight = FontWeight.Bold

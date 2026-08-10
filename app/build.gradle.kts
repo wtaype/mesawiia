@@ -45,7 +45,7 @@ android {
 dependencies {
     implementation(project(":core:wii"))
     implementation(project(":core:data"))
-    implementation(project(":feature:hola"))
+    implementation(project(":feature:lab"))
     implementation(project(":feature:bienvenida"))
     implementation(project(":feature:auth"))
     implementation(project(":feature:empresas"))
