@@ -16,11 +16,11 @@ object EmpresasApi {
         try {
             if (smileId.isBlank()) return@withContext Result.success(emptyList())
             val lista = client.postgrest["empresas"]
-                .select { filter { eq("smile_id", smileId) } }
+                .select { filter { eq("userId", smileId) } }
                 .decodeList<EmpresaModelo>()
             Result.success(lista)
         } catch (e: Exception) {
-            Result.success(emptyList())
+            Result.failure(e)
         }
     }
 
@@ -37,9 +37,10 @@ object EmpresasApi {
 
     suspend fun actualizarEmpresa(empresa: EmpresaModelo): Result<EmpresaModelo> = withContext(Dispatchers.IO) {
         try {
+            val idActualizar = empresa.id ?: return@withContext Result.failure(IllegalArgumentException("ID de empresa nulo"))
             val actualizada = client.postgrest["empresas"]
                 .update(empresa) {
-                    filter { eq("id", empresa.id) }
+                    filter { eq("id", idActualizar) }
                     select()
                 }
                 .decodeSingle<EmpresaModelo>()

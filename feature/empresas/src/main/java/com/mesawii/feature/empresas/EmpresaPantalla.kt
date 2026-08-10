@@ -13,13 +13,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.mesawii.core.kidev.LocalWiMessenger
+import com.mesawii.core.kidev.WiMsgType
 import com.mesawii.feature.empresas.tabs.AjustesEmpresaTab
 import com.mesawii.feature.empresas.tabs.MisEmpresasTab
 import com.mesawii.feature.empresas.tabs.NuevoEmpresaTab
 
 /**
- * 🏢 EmpresaPantalla.kt — Orquestador UI Principal con Swipe Horizontal (HorizontalPager) alineado al Top
- * y respuesta instantánea del indicador activo (targetPage).
+ * 🏢 EmpresaPantalla.kt — Orquestador UI Principal con Swipe Horizontal (HorizontalPager) alineado al Top,
+ * respuesta instantánea del indicador activo (targetPage) y notificaciones flotantes con LocalWiMessenger.
  */
 @Composable
 fun EmpresaPantalla(
@@ -29,7 +31,23 @@ fun EmpresaPantalla(
     onCambiarTab: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val messenger = LocalWiMessenger.current
     val pagerState = rememberPagerState(initialPage = tabActivaIndex, pageCount = { 3 })
+
+    // 📢 NOTIFICACIONES FLOTANTES CON LocalWiMessenger (Éxito y Error)
+    LaunchedEffect(uiState.exitoMensaje) {
+        uiState.exitoMensaje?.let { msg ->
+            messenger.Mensaje(msg, WiMsgType.Success)
+            viewModel.limpiarMensajes()
+        }
+    }
+
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { err ->
+            messenger.Mensaje(err, WiMsgType.Error)
+            viewModel.limpiarMensajes()
+        }
+    }
 
     // 1. Clic en pestaña superior -> Scroll suave del Pager
     LaunchedEffect(tabActivaIndex) {
@@ -49,7 +67,7 @@ fun EmpresaPantalla(
 
     HorizontalPager(
         state = pagerState,
-        verticalAlignment = Alignment.Top, // 📌 Alineación superior directa (evita centrado vertical)
+        verticalAlignment = Alignment.Top,
         modifier = Modifier.fillMaxSize()
     ) { page ->
         val paddingModifier = Modifier.padding(vertical = 4.dp)
@@ -79,7 +97,6 @@ fun EmpresaPantalla(
                         logoUrl = logoUrl,
                         onExito = {
                             onCambiarTab(0)
-                            onEmpresaSeleccionada()
                         }
                     )
                 },
@@ -105,7 +122,6 @@ fun EmpresaPantalla(
                         logoUrl = logoUrl,
                         onExito = {
                             onCambiarTab(0)
-                            onEmpresaSeleccionada()
                         }
                     )
                 },

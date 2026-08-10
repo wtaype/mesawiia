@@ -8,9 +8,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.mesawii.app.layouts.MainLayout
 import com.mesawii.core.kicss.WiTemaApp
+import com.mesawii.core.kidev.WiMessengerHost
+import com.mesawii.core.kidev.WiMessengerProvider
+import com.mesawii.core.kidev.rememberWiMessenger
 
 /**
- * ⚡ MainActivity — Actividad principal ultra-delgada (~25 líneas) conectada a Navegar y RutasState.
+ * ⚡ MainActivity — Actividad principal ultra-delgada conectada a Navegar, RutasState y WiMessenger.
  */
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
@@ -21,10 +24,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             val currentTema by mainViewModel.currentTema.collectAsState()
             val rutasState = rememberRutas(rutaInicial = mainViewModel.rutaInicial)
+            val messenger = rememberWiMessenger()
 
             WiTemaApp(themeColors = currentTema) {
-                MainLayout(rutasState = rutasState) {
-                    Navegar(rutasState = rutasState)
+                WiMessengerProvider(messenger = messenger) {
+                    WiMessengerHost(messenger = messenger)
+                    MainLayout(rutasState = rutasState) {
+                        Navegar(rutasState = rutasState)
+                    }
                 }
             }
         }

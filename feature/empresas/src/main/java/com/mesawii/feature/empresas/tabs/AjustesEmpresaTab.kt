@@ -5,12 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Call
@@ -79,10 +77,10 @@ fun AjustesEmpresaTab(
     var nombreComercial by remember(empresa) { mutableStateOf(empresa.nombreComercial) }
     var direccion by remember(empresa) { mutableStateOf(empresa.direccion) }
     var telefono by remember(empresa) { mutableStateOf(empresa.telefono) }
-    var moneda by remember(empresa) { mutableStateOf(empresa.moneda) }
+    var moneda by remember(empresa) { mutableStateOf("PEN") }
     var ubigeo by remember(empresa) { mutableStateOf(empresa.ubigeo ?: "") }
-    var pinSol by remember(empresa) { mutableStateOf(empresa.pinSol ?: "") }
-    var logoUrl by remember(empresa) { mutableStateOf(empresa.logoUrl ?: "") }
+    var pinSol by remember(empresa) { mutableStateOf("") }
+    var logoUrl by remember(empresa) { mutableStateOf(empresa.logo ?: "") }
 
     WiMain(modifier = modifier) {
         Column(

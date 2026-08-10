@@ -37,9 +37,17 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         cargarEmpresas()
     }
 
-    fun cargarEmpresas() {
+    private fun obtenerSmileIdActivo(): String {
         val smileJson = store.getSmileJson()
-        val smileId = smileJson?.optString("id", "") ?: store.get("wiToken")
+        val smileIdFromObject = smileJson?.optString("id", "")
+        if (!smileIdFromObject.isNullOrBlank()) {
+            return smileIdFromObject
+        }
+        return store.get("wiToken")
+    }
+
+    fun cargarEmpresas() {
+        val smileId = obtenerSmileIdActivo()
         if (smileId.isBlank()) return
 
         _uiState.value = _uiState.value.copy(isLoading = true)
@@ -64,7 +72,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                 onFailure = { err ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = err.localizedMessage ?: "Error al cargar empresas"
+                        error = err.localizedMessage ?: "Error al cargar las empresas registradas"
                     )
                 }
             )
@@ -81,6 +89,10 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
             res.onSuccess { data ->
                 _uiState.value = _uiState.value.copy(datosSunat = data)
                 onResultado(data)
+            }.onFailure { err ->
+                _uiState.value = _uiState.value.copy(
+                    error = err.localizedMessage ?: "No se pudieron obtener datos del RUC en SUNAT"
+                )
             }
         }
     }
@@ -97,10 +109,9 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         logoUrl: String? = null,
         onExito: () -> Unit
     ) {
-        val smileJson = store.getSmileJson()
-        val smileId = smileJson?.optString("id", "") ?: store.get("wiToken")
+        val smileId = obtenerSmileIdActivo()
         if (smileId.isBlank()) {
-            _uiState.value = _uiState.value.copy(error = "No se encontró sesión activa de usuario")
+            _uiState.value = _uiState.value.copy(error = "No se encontró una sesión activa de usuario wiSmile")
             return
         }
 
@@ -108,16 +119,15 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
 
         viewModelScope.launch {
             val nueva = EmpresaModelo(
+                id = null, // 📌 Dejar nulo para que Postgres ejecute gen_random_uuid()
                 smileId = smileId,
                 ruc = ruc.trim(),
                 razonSocial = razonSocial.trim(),
                 nombreComercial = nombreComercial.trim(),
                 direccion = direccion.trim(),
                 telefono = telefono.trim(),
-                moneda = moneda,
                 ubigeo = ubigeo?.trim(),
-                pinSol = pinSol?.trim(),
-                logoUrl = logoUrl?.trim()
+                logo = logoUrl?.trim()
             )
 
             val res = EmpresasApi.crearEmpresa(nueva)
@@ -127,15 +137,22 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         empresaActiva = creada,
-                        exitoMensaje = "¡Empresa '${creada.nombreComercial}' creada con éxito!"
+                        exitoMensaje = "¡Empresa '${creada.nombreComercial}' registrada con éxito!"
                     )
                     cargarEmpresas()
                     onExito()
                 },
                 onFailure = { err ->
+                    val msgLimpio = when {
+                        err.message?.contains("violates row-level security policy", ignoreCase = true) == true ->
+                            "Error de permisos RLS en Supabase: asegúrate de haber ejecutado smiles-tabla.txt y empresa-tabla.txt en Supabase"
+                        err.message?.contains("invalid input syntax for type uuid", ignoreCase = true) == true ->
+                            "Identificador de usuario no es un UUID válido. Inicia sesión de nuevo."
+                        else -> err.localizedMessage ?: "Error al registrar la empresa en Supabase"
+                    }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = err.localizedMessage ?: "Error al registrar la empresa"
+                        error = msgLimpio
                     )
                 }
             )
@@ -160,10 +177,8 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                 nombreComercial = nombreComercial.trim(),
                 direccion = direccion.trim(),
                 telefono = telefono.trim(),
-                moneda = moneda,
                 ubigeo = ubigeo?.trim(),
-                pinSol = pinSol?.trim(),
-                logoUrl = logoUrl?.trim()
+                logo = logoUrl?.trim()
             )
 
             val res = EmpresasApi.actualizarEmpresa(actualizada)
@@ -181,7 +196,7 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                 onFailure = { err ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = err.localizedMessage ?: "Error al actualizar la empresa"
+                        error = err.localizedMessage ?: "Error al actualizar los ajustes de la empresa"
                     )
                 }
             )
