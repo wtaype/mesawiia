@@ -14,58 +14,57 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mesawii.core.kidev.FadeMain
-import com.mesawii.core.kidev.LocalWiMessenger
 import com.mesawii.core.kidev.WiDialog
+import com.mesawii.core.kidev.WiMessengerHost
 import com.mesawii.core.kidev.WiMsgType
+import com.mesawii.core.kidev.rememberWiMessenger
 import com.mesawii.feature.empresas.data.EmpresaModelo
 import com.mesawii.feature.empresas.tabs.AjustesEmpresaTab
 import com.mesawii.feature.empresas.tabs.MisEmpresasTab
 import com.mesawii.feature.empresas.tabs.NuevoEmpresaTab
 
 /**
- * 🏢 EmpresaPantalla.kt — Orquestador UI Principal de Empresas.
- * Conectado a FadeMain para transiciones de entrada suave Fade-In (200ms) por sub-pestaña.
+ * 🏢 EmpresaPantalla.kt — Pantalla Principal del Módulo Empresas & Negocios.
+ * Integrada con WiMessengerHost de kidev para notificaciones flotantes premium estilo Apple.
  */
 @Composable
 fun EmpresaPantalla(
     tabActivaIndex: Int = 0,
-    viewModel: EmpresaViewModel = viewModel(),
+    onCambiarTab: (Int) -> Unit = {},
     onEmpresaSeleccionada: () -> Unit = {},
-    onCambiarTab: (Int) -> Unit = {}
+    viewModel: EmpresaViewModel = viewModel(),
+    modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val messenger = LocalWiMessenger.current
+    val messenger = rememberWiMessenger()
 
     var empresaAEliminar by remember { mutableStateOf<EmpresaModelo?>(null) }
 
-    // 🔔 NOTIFICACIONES FLOTANTES CON Notificacion() en la parte superior
-    LaunchedEffect(uiState.exitoMensaje) {
+    LaunchedEffect(uiState.exitoMensaje, uiState.error) {
         uiState.exitoMensaje?.let { msg ->
-            messenger.Notificacion(msg, WiMsgType.Success)
+            messenger.Notificacion(msg, type = WiMsgType.Success)
             viewModel.limpiarMensajes()
         }
-    }
-
-    LaunchedEffect(uiState.error) {
         uiState.error?.let { err ->
-            messenger.Notificacion(err, WiMsgType.Error)
+            messenger.Notificacion("❌ $err", type = WiMsgType.Error)
             viewModel.limpiarMensajes()
         }
     }
 
-    // 💬 Modal de Confirmación WiDialog para Eliminar
-    WiDialog(
-        show = empresaAEliminar != null,
-        title = "Eliminar Empresa",
-        text = "¿Estás seguro de que deseas eliminar la empresa '${empresaAEliminar?.nombreComercial}'? Esta acción la eliminará de Supabase permanentemente.",
-        confirmText = "Sí, Eliminar",
-        dismissText = "Cancelar",
-        onConfirm = {
-            empresaAEliminar?.let { viewModel.eliminarEmpresa(it) }
-            empresaAEliminar = null
-        },
-        onDismiss = { empresaAEliminar = null }
-    )
+    if (empresaAEliminar != null) {
+        WiDialog(
+            show = true,
+            title = "Eliminar Empresa",
+            text = "¿Estás seguro de que deseas eliminar '${empresaAEliminar?.nombreComercial}'? Esta acción no se puede deshacer.",
+            confirmText = "Eliminar",
+            dismissText = "Cancelar",
+            onConfirm = {
+                empresaAEliminar?.let { viewModel.eliminarEmpresa(it) }
+                empresaAEliminar = null
+            },
+            onDismiss = { empresaAEliminar = null }
+        )
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         val paddingModifier = Modifier.padding(vertical = 4.dp)
@@ -76,6 +75,7 @@ fun EmpresaPantalla(
                     empresaActiva = uiState.empresaActiva,
                     onSeleccionar = { empresa ->
                         viewModel.seleccionarEmpresa(empresa)
+                        onEmpresaSeleccionada()
                     },
                     onEditar = { empresa ->
                         viewModel.prepararEdicion(empresa)
@@ -152,6 +152,9 @@ fun EmpresaPantalla(
                             }
                         )
                     },
+                    onToggleCampo = { empresa, campo, nuevoValor ->
+                        viewModel.toggleCampoEmpresa(empresa, campo, nuevoValor)
+                    },
                     isLoading = uiState.isLoading,
                     modifier = paddingModifier
                 )
@@ -160,6 +163,7 @@ fun EmpresaPantalla(
                     empresaActiva = uiState.empresaActiva,
                     onSeleccionar = { empresa ->
                         viewModel.seleccionarEmpresa(empresa)
+                        onEmpresaSeleccionada()
                     },
                     onEditar = { empresa ->
                         viewModel.prepararEdicion(empresa)
@@ -180,5 +184,8 @@ fun EmpresaPantalla(
                 )
             }
         }
+
+        // 🌟 Sistema Premium de Notificación Flotante kidev (remplaza la barra negra SnackbarHost)
+        WiMessengerHost(messenger = messenger)
     }
 }

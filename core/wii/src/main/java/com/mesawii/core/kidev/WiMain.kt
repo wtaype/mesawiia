@@ -2,9 +2,11 @@ package com.mesawii.core.kidev
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,7 +18,7 @@ import com.mesawii.core.kicss.WiCss
 
 /**
  * 📦 WiMain.kt — Contenedor Marco Principal de Contenido con fondo WiCss.wb y borde Glass (WiCss.glassBrd).
- * Ubicado en com.mesawii.core.kidev para consumo limpio desde todos los módulos feature y app.
+ * Altura mínima 80vh (~560dp) y alineación superior (Arrangement.Top) para una presencia visual impecable.
  */
 @Composable
 fun WiMain(
@@ -26,6 +28,7 @@ fun WiMain(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .defaultMinSize(minHeight = 560.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(WiCss.wb)
             .border(1.dp, WiCss.glassBrd, RoundedCornerShape(16.dp))
@@ -33,6 +36,7 @@ fun WiMain(
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.Top,
             content = content
         )
     }

@@ -24,7 +24,7 @@ import com.mesawii.core.kicss.WiCss
 import com.mesawii.core.kicss.WiText
 
 /**
- * 🧩 Tabs.kt — Barra Enterprise de sub-pestañas 100% Ancho y Plana (0 Margin inferior) con borde Glass (WiCss.glassBrd),
+ * 🧩 Tabs.kt — Barra Enterprise de sub-pestañas 100% Ancho y Plana con touch-target expandido (padding top/bottom optimizado),
  * íconos compactos de 15dp, respuesta de color ultrarrápida (0ms delay) y borde de 3dp sincronizado a 60fps.
  */
 @Composable
@@ -57,14 +57,14 @@ fun Tabs(
                         modifier = Modifier
                             .weight(1f)
                             .clickable { onSeleccionarTab(index) }
-                            .padding(top = 6.dp),
+                            .padding(top = 10.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Bottom
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.padding(bottom = 6.dp)
+                            modifier = Modifier.padding(bottom = 8.dp)
                         ) {
                             tab.icono?.let { vectorIcon ->
                                 Icon(

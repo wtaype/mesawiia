@@ -41,7 +41,7 @@ import com.mesawii.core.kidev.WiSwitch
 import com.mesawii.feature.empresas.data.EmpresaModelo
 
 /**
- * ⚙️ AjustesEmpresaTab.kt — Sub-pantalla (Pestaña 2): Ajustes y Configuración de Empresa con WiSelect y Switches Apple Pro.
+ * ⚙️ AjustesEmpresaTab.kt — Sub-pantalla (Pestaña 2): Ajustes y Configuración de Empresa con WiSelect y Switches Apple Pro Reactivos.
  */
 @Composable
 fun AjustesEmpresaTab(
@@ -62,6 +62,7 @@ fun AjustesEmpresaTab(
         aceptaFactura: Boolean,
         formatoTicketera: String
     ) -> Unit,
+    onToggleCampo: (empresa: EmpresaModelo, campo: String, nuevoValor: Boolean) -> Unit = { _, _, _ -> },
     isLoading: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -94,10 +95,10 @@ fun AjustesEmpresaTab(
     var pinSol by remember(empresaActual) { mutableStateOf("") }
     var logoUrl by remember(empresaActual) { mutableStateOf(empresaActual.logo ?: "") }
 
-    // 🎚️ Switches de Comprobantes (Estilo Apple / iOS Pro)
-    var aceptaNotaVenta by remember(empresaActual) { mutableStateOf(true) }
-    var aceptaBoleta by remember(empresaActual) { mutableStateOf(true) }
-    var aceptaFactura by remember(empresaActual) { mutableStateOf(true) }
+    // 🎚️ Switches de Comprobantes Reactivos (Guardan al instante en Supabase + Feedback)
+    val aceptaNotaVenta = empresaActual.notaVenta
+    val aceptaBoleta = empresaActual.boleta
+    val aceptaFactura = empresaActual.factura
 
     // 🖨️ Formato de Ticketera POS
     var formatoTicketera by remember(empresaActual) { mutableStateOf("80 mm (Térmica Estándar)") }
@@ -178,7 +179,7 @@ fun AjustesEmpresaTab(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 📑 Sección Comprobantes & Facturación (Switches Apple Pro)
+            // 📑 Sección Comprobantes & Facturación (Switches Apple Pro Reactivos)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Rounded.Info,
@@ -197,7 +198,9 @@ fun AjustesEmpresaTab(
 
             WiSwitch(
                 checked = aceptaNotaVenta,
-                onCheckedChange = { aceptaNotaVenta = it },
+                onCheckedChange = { nuevoValor ->
+                    onToggleCampo(empresaActual, "nota_venta", nuevoValor)
+                },
                 label = "Nota de Venta (Comprobante Interno)",
                 sublabel = "Serie predeterminada: NV01 • Emisión sin envío SUNAT",
                 activeTrackColor = WiCss.success
@@ -205,7 +208,9 @@ fun AjustesEmpresaTab(
 
             WiSwitch(
                 checked = aceptaBoleta,
-                onCheckedChange = { aceptaBoleta = it },
+                onCheckedChange = { nuevoValor ->
+                    onToggleCampo(empresaActual, "boleta", nuevoValor)
+                },
                 label = "Boleta de Venta Electrónica",
                 sublabel = "Serie predeterminada: B001 • Envío directo a SUNAT",
                 activeTrackColor = WiCss.success
@@ -213,7 +218,9 @@ fun AjustesEmpresaTab(
 
             WiSwitch(
                 checked = aceptaFactura,
-                onCheckedChange = { aceptaFactura = it },
+                onCheckedChange = { nuevoValor ->
+                    onToggleCampo(empresaActual, "factura", nuevoValor)
+                },
                 label = "Factura Electrónica RUC",
                 sublabel = "Serie predeterminada: F001 • Emisión obligatoria con RUC",
                 activeTrackColor = WiCss.mco

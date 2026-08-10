@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * 🏢 EmpresaModelo.kt — Modelo de dominio 1:1 de la entidad public.empresas Supabase.
- * Contiene la propiedad computada `esEmpresaActiva` que evalúa sincronizadamente `activo` (Boolean) y `estado` (String).
+ * Incluye soporte para `nota_venta`, `boleta`, `factura` y propiedad computada `esEmpresaActiva`.
  */
 @Serializable
 data class EmpresaModelo(
@@ -23,6 +23,9 @@ data class EmpresaModelo(
     val principal: Boolean = false,
     val activo: Boolean = true,
     val estado: String? = "activo",
+    @SerialName("nota_venta") val notaVenta: Boolean = true,
+    val boleta: Boolean = true,
+    val factura: Boolean = true,
     val creado: String? = null,
     val actualizado: String? = null
 ) {

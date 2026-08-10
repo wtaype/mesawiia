@@ -34,6 +34,7 @@ import com.mesawii.core.kidev.wiStore
 
 /**
  * 🧩 Header.kt — Encabezado 100% Ancho sin border-radius (0 Margin Top, Título Limpio & Avatar Interactivo).
+ * Padding ajustado para maximizar la superficie táctil de la barra de pestañas.
  */
 @Composable
 fun Header(
@@ -51,7 +52,7 @@ fun Header(
             .fillMaxWidth()
             .clip(RectangleShape)
             .background(WiCss.wb)
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 2.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

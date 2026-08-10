@@ -140,7 +140,10 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                 logo = logoUrl?.trim(),
                 activo = activo,
                 estado = if (activo) "activo" else "inactivo",
-                principal = _uiState.value.empresas.isEmpty()
+                principal = _uiState.value.empresas.isEmpty(),
+                notaVenta = true,
+                boleta = true,
+                factura = true
             )
 
             val res = EmpresasApi.crearEmpresa(nueva)
@@ -176,7 +179,6 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun guardarEdicion(empresa: EmpresaModelo, onExito: () -> Unit) {
-        // ⚡ 1. Actualización Optimista e Inmediata en Memoria UI (< 1ms)
         val listaOptimista = _uiState.value.empresas.map {
             if (it.id == empresa.id) empresa else it
         }
@@ -221,6 +223,53 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                     )
                 }
             )
+        }
+    }
+
+    fun toggleCampoEmpresa(empresa: EmpresaModelo, campo: String, nuevoValor: Boolean) {
+        val id = empresa.id ?: return
+        
+        val empresaModificada = when (campo) {
+            "nota_venta" -> empresa.copy(notaVenta = nuevoValor)
+            "boleta" -> empresa.copy(boleta = nuevoValor)
+            "factura" -> empresa.copy(factura = nuevoValor)
+            "activo" -> empresa.copy(activo = nuevoValor, estado = if (nuevoValor) "activo" else "inactivo")
+            else -> empresa
+        }
+
+        val nombreCampo = when (campo) {
+            "nota_venta" -> "Nota de Venta"
+            "boleta" -> "Boleta Electrónica"
+            "factura" -> "Factura Electrónica"
+            "activo" -> "Operatividad de Empresa"
+            else -> campo
+        }
+
+        val estadoTexto = if (nuevoValor) "activada" else "desactivada"
+
+        // ⚡ 1. Actualización Optimista e Inmediata (< 1ms)
+        val listaActualizada = _uiState.value.empresas.map {
+            if (it.id == id) empresaModificada else it
+        }
+        val activaActualizada = if (_uiState.value.empresaActiva?.id == id) empresaModificada else _uiState.value.empresaActiva
+
+        if (activaActualizada != null) {
+            cacheEmpresa.guardarEmpresaActiva(activaActualizada)
+        }
+
+        _uiState.value = _uiState.value.copy(
+            empresas = listaActualizada,
+            empresaActiva = activaActualizada,
+            exitoMensaje = "¡$nombreCampo $estadoTexto para ${empresa.nombreComercial}!"
+        )
+
+        // ⚡ 2. Persistencia atómica en Supabase mediante DSL nativo
+        viewModelScope.launch {
+            if (campo == "activo") {
+                EmpresasApi.actualizarCampoBoolean(id, "activo", nuevoValor)
+            } else {
+                EmpresasApi.actualizarCampoBoolean(id, campo, nuevoValor)
+            }
         }
     }
 
@@ -272,17 +321,33 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
         formatoTicketera: String,
         onExito: () -> Unit
     ) {
-        _uiState.value = _uiState.value.copy(isLoading = true)
+        val actualizada = empresa.copy(
+            nombreComercial = nombreComercial.trim(),
+            direccion = direccion.trim(),
+            telefono = telefono.trim(),
+            ubigeo = ubigeo?.trim(),
+            logo = logoUrl?.trim(),
+            notaVenta = aceptaNotaVenta,
+            boleta = aceptaBoleta,
+            factura = aceptaFactura
+        )
+
+        val listaOptimista = _uiState.value.empresas.map {
+            if (it.id == actualizada.id) actualizada else it
+        }
+        val activaOptimista = if (_uiState.value.empresaActiva?.id == actualizada.id) actualizada else _uiState.value.empresaActiva
+
+        if (activaOptimista != null) {
+            cacheEmpresa.guardarEmpresaActiva(activaOptimista)
+        }
+
+        _uiState.value = _uiState.value.copy(
+            isLoading = true,
+            empresas = listaOptimista,
+            empresaActiva = activaOptimista
+        )
 
         viewModelScope.launch {
-            val actualizada = empresa.copy(
-                nombreComercial = nombreComercial.trim(),
-                direccion = direccion.trim(),
-                telefono = telefono.trim(),
-                ubigeo = ubigeo?.trim(),
-                logo = logoUrl?.trim()
-            )
-
             val res = EmpresasApi.actualizarEmpresa(actualizada)
             res.fold(
                 onSuccess = { ok ->
