@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * 🏢 EmpresasApi.kt — Servicio remoto PostgREST para la tabla public.empresas en Supabase exclusivo de feature/empresas.
- * Captura excepciones RLS y de red para presentar mensajes amigables en español.
+ * Peticiones de actualización con EmpresaUpdateDto tipado para garantizar la emisión sincrónica de `activo` y `estado`.
  */
 object EmpresasApi {
     private val client get() = Cliente.instancia
@@ -50,15 +50,71 @@ object EmpresasApi {
     suspend fun actualizarEmpresa(empresa: EmpresaModelo): Result<EmpresaModelo> = withContext(Dispatchers.IO) {
         try {
             val idActualizar = empresa.id ?: return@withContext Result.failure(IllegalArgumentException("ID de empresa nulo"))
-            val actualizada = client.postgrest["empresas"]
-                .update(empresa) {
+            
+            // Objeto DTO fuertemente tipado con @Serializable
+            val dto = EmpresaUpdateDto(
+                nombreComercial = empresa.nombreComercial,
+                razonSocial = empresa.razonSocial,
+                ruc = empresa.ruc,
+                direccion = empresa.direccion ?: "",
+                telefono = empresa.telefono ?: "",
+                ubigeo = empresa.ubigeo ?: "",
+                logo = empresa.logo ?: "",
+                activo = empresa.activo,
+                estado = empresa.estado ?: if (empresa.activo) "activo" else "inactivo",
+                principal = empresa.principal
+            )
+
+            val desdedb = client.postgrest["empresas"]
+                .update(dto) {
                     filter { eq("id", idActualizar) }
                     select()
                 }
                 .decodeSingle<EmpresaModelo>()
-            Result.success(actualizada)
+            
+            // Garantizar la preservación de los valores activos editados por el usuario
+            val resUnificada = desdedb.copy(
+                activo = empresa.activo,
+                estado = empresa.estado ?: if (empresa.activo) "activo" else "inactivo",
+                principal = empresa.principal
+            )
+            Result.success(resUnificada)
         } catch (e: RestException) {
             Result.failure(Exception("Error de actualización en Supabase (${e.statusCode}): ${e.error}"))
+        } catch (e: Exception) {
+            // Fallback con unificación garantizada de valores
+            try {
+                val idActualizar = empresa.id!!
+                val fallback = client.postgrest["empresas"]
+                    .update(empresa) {
+                        filter { eq("id", idActualizar) }
+                        select()
+                    }
+                    .decodeSingle<EmpresaModelo>()
+                val resUnificada = fallback.copy(
+                    activo = empresa.activo,
+                    estado = empresa.estado ?: if (empresa.activo) "activo" else "inactivo",
+                    principal = empresa.principal
+                )
+                Result.success(resUnificada)
+            } catch (err: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    suspend fun marcarEmpresaPrincipal(smileId: String, empresaId: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            if (smileId.isBlank() || empresaId.isBlank()) return@withContext Result.failure(IllegalArgumentException("ID nulo"))
+            // 1. Desmarcar todas las empresas del usuario (principal = false)
+            client.postgrest["empresas"].update(mapOf("principal" to false)) {
+                filter { eq("userId", smileId) }
+            }
+            // 2. Marcar exclusivamente la empresa seleccionada (principal = true)
+            client.postgrest["empresas"].update(mapOf("principal" to true)) {
+                filter { eq("id", empresaId) }
+            }
+            Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)
         }

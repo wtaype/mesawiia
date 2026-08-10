@@ -34,7 +34,9 @@ import com.mesawii.core.kidev.GoldPill
 import com.mesawii.feature.empresas.data.EmpresaModelo
 
 /**
- * 🃏 EmpresaCard.kt — Tarjeta visual pro de empresa alineada con `empresa.esEmpresaActiva` y acciones de Editar/Eliminar.
+ * 🃏 EmpresaCard.kt — Tarjeta visual pro de empresa con diferenciación inconfundible:
+ * - Badge "ACTUAL" (Empresa Principal / Sesión Activa)
+ * - Indicador bajo el nombre: "• HABILITADA" (Verde) vs "• INACTIVA" (Rojo)
  */
 @Composable
 fun EmpresaCard(
@@ -52,7 +54,7 @@ fun EmpresaCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(if (estaHabilitada) WiCss.wb else WiCss.wb.copy(alpha = 0.6f))
+            .background(if (estaHabilitada) WiCss.wb else WiCss.wb.copy(alpha = 0.65f))
             .border(1.dp, if (esActiva) WiCss.mco else WiCss.glassBrd, RoundedCornerShape(16.dp))
             .clickable { onSeleccionar() }
             .padding(14.dp)
@@ -81,20 +83,18 @@ fun EmpresaCard(
                             color = WiCss.tx,
                             fontWeight = FontWeight.Bold
                         )
-                        if (!estaHabilitada) {
-                            Text(
-                                text = "DESACTIVADA",
-                                style = WiText.tiny,
-                                color = WiCss.error,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        Text(
+                            text = if (estaHabilitada) "• HABILITADA" else "• INACTIVA",
+                            style = WiText.tiny,
+                            color = if (estaHabilitada) WiCss.success else WiCss.error,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (esActiva) {
-                        GoldPill("ACTIVA")
+                    if (esActiva || empresa.principal) {
+                        GoldPill("ACTUAL")
                     }
 
                     // ✏️ Editar

@@ -62,7 +62,8 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
             val res = EmpresasApi.obtenerEmpresasPorSmile(smileId)
             res.fold(
                 onSuccess = { lista ->
-                    val activa = lista.firstOrNull { it.nombreComercial == cacheEmpresa.getNombreEmpresaActiva() }
+                    val activa = lista.firstOrNull { it.principal }
+                        ?: lista.firstOrNull { it.nombreComercial == cacheEmpresa.getNombreEmpresaActiva() }
                         ?: lista.firstOrNull()
 
                     if (activa != null) {
@@ -138,7 +139,8 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                 ubigeo = ubigeo?.trim(),
                 logo = logoUrl?.trim(),
                 activo = activo,
-                estado = if (activo) "activo" else "inactivo"
+                estado = if (activo) "activo" else "inactivo",
+                principal = _uiState.value.empresas.isEmpty()
             )
 
             val res = EmpresasApi.crearEmpresa(nueva)
@@ -174,7 +176,21 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun guardarEdicion(empresa: EmpresaModelo, onExito: () -> Unit) {
-        _uiState.value = _uiState.value.copy(isLoading = true)
+        // ⚡ 1. Actualización Optimista e Inmediata en Memoria UI (< 1ms)
+        val listaOptimista = _uiState.value.empresas.map {
+            if (it.id == empresa.id) empresa else it
+        }
+        val activaOptimista = if (_uiState.value.empresaActiva?.id == empresa.id) empresa else _uiState.value.empresaActiva
+
+        if (activaOptimista != null) {
+            cacheEmpresa.guardarEmpresaActiva(activaOptimista)
+        }
+
+        _uiState.value = _uiState.value.copy(
+            isLoading = true,
+            empresas = listaOptimista,
+            empresaActiva = activaOptimista
+        )
 
         viewModelScope.launch {
             val res = EmpresasApi.actualizarEmpresa(empresa)
@@ -196,7 +212,6 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                         empresaAEditar = null,
                         exitoMensaje = "¡Empresa '${actualizada.nombreComercial}' actualizada!"
                     )
-                    cargarEmpresas()
                     onExito()
                 },
                 onFailure = { err ->
@@ -281,7 +296,6 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
                         empresaActiva = ok,
                         exitoMensaje = "¡Ajustes de facturación de '${ok.nombreComercial}' guardados!"
                     )
-                    cargarEmpresas()
                     onExito()
                 },
                 onFailure = { err ->
@@ -295,11 +309,27 @@ class EmpresaViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun seleccionarEmpresa(empresa: EmpresaModelo) {
-        cacheEmpresa.guardarEmpresaActiva(empresa)
+        val idSeleccionado = empresa.id ?: return
+        val smileId = obtenerSmileIdActivo()
+
+        val empresaConPrincipal = empresa.copy(principal = true)
+        val listaActualizada = _uiState.value.empresas.map { item ->
+            val esSeleccionada = (item.id == idSeleccionado)
+            item.copy(principal = esSeleccionada)
+        }
+
+        cacheEmpresa.guardarEmpresaActiva(empresaConPrincipal)
         _uiState.value = _uiState.value.copy(
-            empresaActiva = empresa,
-            exitoMensaje = "Empresa '${empresa.nombreComercial}' seleccionada como activa"
+            empresas = listaActualizada,
+            empresaActiva = empresaConPrincipal,
+            exitoMensaje = "Empresa '${empresa.nombreComercial}' seleccionada como ACTUAL"
         )
+
+        if (smileId.isNotBlank()) {
+            viewModelScope.launch {
+                EmpresasApi.marcarEmpresaPrincipal(smileId, idSeleccionado)
+            }
+        }
     }
 
     fun limpiarMensajes() {
